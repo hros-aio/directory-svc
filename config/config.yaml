@@ -1,0 +1,22 @@
+app:
+  name: "hrms-directory-service"
+  port: 3000
+  env: "development"
+
+database:
+  host: "localhost"
+  port: 5432
+  username: "hrms_user"
+  password: "hrms_password"
+  name: "hrms_directory_db"
+
+redis:
+  host: "localhost"
+  port: 6379
+
+kafka:
+  brokers:
+    - "localhost:9092"
+
+jwt:
+  publicKey: "test-public-key"

@@ -1,0 +1,33 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "declaration": true,
+    "removeComments": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "target": "ES2021",
+    "sourceMap": true,
+    "outDir": "./dist",
+    "baseUrl": "./",
+    "paths": {
+      "@/*": ["src/*"],
+      "@nestjs/common": ["node_modules/@nestjs/common"],
+      "@nestjs/core": ["node_modules/@nestjs/core"],
+      "@nestjs/typeorm": ["node_modules/@nestjs/typeorm"],
+      "typeorm": ["node_modules/typeorm"],
+      "@new-hros/libs-core": ["node_modules/@new-hros/libs-core"],
+      "@new-hros/libs-apis": ["node_modules/@new-hros/libs-apis"],
+      "@new-hros/libs-sql": ["node_modules/@new-hros/libs-sql"],
+      "@new-hros/libs-events": ["node_modules/@new-hros/libs-events"]
+    },
+    "incremental": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "strictNullChecks": true,
+    "noImplicitAny": true,
+    "strictPropertyInitialization": false,
+    "noFallthroughCasesInSwitch": true
+  }
+}

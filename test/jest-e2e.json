@@ -1,0 +1,27 @@
+{
+  "moduleFileExtensions": ["js", "json", "ts"],
+  "rootDir": "../",
+  "testEnvironment": "node",
+  "setupFiles": ["<rootDir>/test/jest-setup.ts"],
+  "testMatch": [
+    "<rootDir>/test/**/*.e2e-spec.ts"
+  ],
+  "transform": {
+    "^.+\\.(t|j)s$": "ts-jest"
+  },
+  "moduleNameMapper": {
+    "^@/(.*)$": "<rootDir>/src/$1",
+    "^@nestjs/core(.*)$": "<rootDir>/node_modules/@nestjs/core$1",
+    "^@nestjs/common(.*)$": "<rootDir>/node_modules/@nestjs/common$1",
+    "^@nestjs/typeorm(.*)$": "<rootDir>/node_modules/@nestjs/typeorm$1",
+    "^typeorm(.*)$": "<rootDir>/node_modules/typeorm$1",
+    "^@new-hros/libs-core$": "<rootDir>/node_modules/@new-hros/libs-core/dist/index.js",
+    "^@new-hros/libs-core/(.*)$": "<rootDir>/node_modules/@new-hros/libs-core/dist/$1",
+    "^@new-hros/libs-apis$": "<rootDir>/node_modules/@new-hros/libs-apis/dist/index.js",
+    "^@new-hros/libs-apis/(.*)$": "<rootDir>/node_modules/@new-hros/libs-apis/dist/$1",
+    "^@new-hros/libs-sql$": "<rootDir>/node_modules/@new-hros/libs-sql/dist/index.js",
+    "^@new-hros/libs-sql/(.*)$": "<rootDir>/node_modules/@new-hros/libs-sql/dist/$1",
+    "^@new-hros/libs-events$": "<rootDir>/node_modules/@new-hros/libs-events/dist/index.js",
+    "^@new-hros/libs-events/(.*)$": "<rootDir>/node_modules/@new-hros/libs-events/dist/$1"
+  }
+}

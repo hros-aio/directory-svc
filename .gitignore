@@ -1,0 +1,23 @@
+node_modules/
+dist/
+build/
+coverage/
+coverage-e2e/
+*.log
+.env
+.env.local
+.env.production
+.DS_Store
+Thumbs.db
+*.tmp
+*.swp
+.vscode/
+.idea/
+
+# Local secret/key files
+*.secret.yaml
+secrets/
+.kube/
+kubeconfig*
+*.key
+*.crt
