@@ -1,0 +1,13 @@
+node_modules/
+dist/
+build/
+coverage/
+coverage-e2e/
+.git/
+.husky/
+.specify/
+specs/
+Dockerfile*
+.dockerignore
+*.log*
+.env*

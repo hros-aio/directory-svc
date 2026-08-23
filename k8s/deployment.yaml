@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hrms-directory-service
+  labels:
+    app: hrms-directory-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: hrms-directory-service
+  template:
+    metadata:
+      labels:
+        app: hrms-directory-service
+    spec:
+      containers:
+        - name: directory-service
+          image: hrms-directory-service:latest
+          ports:
+            - containerPort: 3000
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
