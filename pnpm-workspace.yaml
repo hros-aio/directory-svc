@@ -1,2 +1,5 @@
 allowBuilds:
   '@nestjs/core': true
+minimumReleaseAgeExclude:
+  - '@new-hros/libs-apis@1.2.2'
+  - '@new-hros/libs-core@1.3.2'
