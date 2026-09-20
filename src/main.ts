@@ -24,8 +24,11 @@ async function bootstrap(): Promise<void> {
   const configService = app.get(ConfigurationService);
   const port = configService.get<number>('app.port') ?? 3000;
 
+  const globalPrefix = 'directory-api';
+
   // Configure CORS from shared library
   app.enableCors(createCorsOptions());
+  app.setGlobalPrefix(globalPrefix);
 
   // Configure API Versioning (MEDIA_TYPE versioning as per shared library implementation)
   setupVersioning(app, { defaultVersion: '1' });
@@ -36,7 +39,7 @@ async function bootstrap(): Promise<void> {
     title: 'HRMS Directory Service',
     description: 'API documentation for the HRMS Directory Service',
     version: '1.0.0',
-    path: 'docs',
+    path: `${globalPrefix}/docs`,
     bearerAuth: true,
   });
 
