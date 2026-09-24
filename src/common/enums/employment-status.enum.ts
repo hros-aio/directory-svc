@@ -1,0 +1,8 @@
+export enum EmploymentStatus {
+  PENDING = 'PENDING',
+  PROBATION = 'PROBATION',
+  ACTIVE = 'ACTIVE',
+  ON_LEAVE = 'ON_LEAVE',
+  SUSPENDED = 'SUSPENDED',
+  ENDED = 'ENDED',
+}
