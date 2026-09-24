@@ -24,7 +24,7 @@ describe('Directory Service HealthCheck (e2e)', () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [
         ConfigurationModule.register({ configDir: 'config' }),
-        CoreModule.forRoot({ cache: { store: 'memory' } }),
+        CoreModule.forRoot(),
         LibsHealthModule,
       ],
     })

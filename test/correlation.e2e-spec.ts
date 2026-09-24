@@ -20,7 +20,7 @@ describe('Correlation Headers & Request ID Propagation (e2e)', () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [
         ConfigurationModule.register({ configDir: 'config' }),
-        CoreModule.forRoot({ cache: { store: 'memory' } }),
+        CoreModule.forRoot(),
         ApisModule.forRoot({
           auth: {
             publicKey: 'test-public-key',

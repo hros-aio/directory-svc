@@ -1,0 +1,8 @@
+export enum EmploymentContractType {
+  PERMANENT = 'PERMANENT',
+  FIXED_TERM = 'FIXED_TERM',
+  PART_TIME = 'PART_TIME',
+  CONTRACTOR = 'CONTRACTOR',
+  INTERNSHIP = 'INTERNSHIP',
+  OTHER = 'OTHER',
+}

@@ -1,0 +1,7 @@
+export enum EmployeeStatus {
+  INVITED = 'INVITED',
+  ONBOARDING = 'ONBOARDING',
+  ACTIVE = 'ACTIVE',
+  INACTIVE = 'INACTIVE',
+  TERMINATED = 'TERMINATED',
+}
