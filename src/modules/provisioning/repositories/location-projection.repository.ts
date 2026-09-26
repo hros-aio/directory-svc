@@ -7,6 +7,12 @@ export class LocationProjectionRepository extends BaseRepository<Location> {
     super(Location, transactionService);
   }
 
+  async findByIdAndTenant(id: string, tenantCode: string): Promise<Location | null> {
+    return this.repository.findOne({
+      where: { id, tenantCode },
+    });
+  }
+
   async upsertProjection(data: Location): Promise<Location> {
     const existing = await this.findById(data.id);
 

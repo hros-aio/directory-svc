@@ -12,6 +12,12 @@ export class DepartmentProjectionRepository extends BaseRepository<Department> {
     super(Department, transactionService);
   }
 
+  async findByIdAndTenant(id: string, tenantCode: string): Promise<Department | null> {
+    return this.repository.findOne({
+      where: { id, tenantCode },
+    });
+  }
+
   async upsertProjection(data: Department): Promise<Department> {
     const existing = await this.findById(data.id);
 

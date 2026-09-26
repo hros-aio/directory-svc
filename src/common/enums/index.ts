@@ -9,6 +9,7 @@ export * from './employment-type.enum';
 export * from './onboarding-requirement-status.enum';
 export * from './onboarding-requirement-type.enum';
 export * from './onboarding-status.enum';
+export * from './outbox-status.enum';
 export * from './setting-event-type.enum';
 export * from './table-name';
 export * from './tax-profile-status.enum';
