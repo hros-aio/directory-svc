@@ -2,9 +2,9 @@ import { BaseEntity } from '@new-hros/libs-sql';
 import { Check, Column, Entity, Index, JoinColumn, ManyToOne, Unique } from 'typeorm';
 
 import { EmployeeEntity } from './employee.entity';
-import { EmployeeDocumentStatus, EmployeeDocumentType } from '../../../common/enums';
+import { EmployeeDocumentStatus, EmployeeDocumentType, TableName } from '../../../common/enums';
 
-@Entity('employee_documents')
+@Entity(TableName.EmployeeDocument)
 @Unique('uq_employee_documents_tenant_id', ['tenantCode', 'id'])
 @Index('idx_employee_documents_employee', ['tenantCode', 'employeeId'])
 @Index('idx_employee_documents_type_status', ['tenantCode', 'documentType', 'status'])
@@ -14,7 +14,7 @@ import { EmployeeDocumentStatus, EmployeeDocumentType } from '../../../common/en
 )
 export class EmployeeDocumentEntity extends BaseEntity {
   @Column({ name: 'employee_id', type: 'uuid', nullable: false })
-  employeeId!: string;
+  employeeId: string;
 
   @Column({
     name: 'document_type',
@@ -23,13 +23,13 @@ export class EmployeeDocumentEntity extends BaseEntity {
     enumName: 'employee_document_type',
     nullable: false,
   })
-  documentType!: EmployeeDocumentType;
+  documentType: EmployeeDocumentType;
 
   @Column({ name: 'document_number', type: 'varchar', length: 128, nullable: true })
-  documentNumber!: string | null;
+  documentNumber: string | null;
 
   @Column({ name: 'file_id', type: 'uuid', nullable: false })
-  fileId!: string;
+  fileId: string;
 
   @Column({
     name: 'status',
@@ -39,13 +39,13 @@ export class EmployeeDocumentEntity extends BaseEntity {
     nullable: false,
     default: EmployeeDocumentStatus.PENDING,
   })
-  status!: EmployeeDocumentStatus;
+  status: EmployeeDocumentStatus;
 
   @Column({ name: 'issued_at', type: 'date', nullable: true })
-  issuedAt!: Date | null;
+  issuedAt: Date | null;
 
   @Column({ name: 'expired_at', type: 'date', nullable: true })
-  expiredAt!: Date | null;
+  expiredAt: Date | null;
 
   @ManyToOne(() => EmployeeEntity, (employee) => employee.documents, {
     onDelete: 'CASCADE',

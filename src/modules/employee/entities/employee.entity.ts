@@ -6,11 +6,11 @@ import { EmployeeDocumentEntity } from './employee-document.entity';
 import { EmployeeProfileEntity } from './employee-profile.entity';
 import { EmployeeTaxProfileEntity } from './employee-tax-profile.entity';
 import { OnboardingEntity } from './onboarding.entity';
-import { EmployeeStatus, EmploymentStatus, EmploymentType } from '../../../common/enums';
+import { EmployeeStatus, EmploymentStatus, EmploymentType, TableName } from '../../../common/enums';
 import type { EmploymentAssignmentEntity } from '../../employment/entities/employment-assignment.entity';
 import type { EmploymentContractEntity } from '../../employment/entities/employment-contract.entity';
 
-@Entity('employees')
+@Entity(TableName.Employee)
 @Unique('uq_employees_tenant_employee_code', ['tenantCode', 'employeeCode'])
 @Unique('uq_employees_tenant_id', ['tenantCode', 'id'])
 @Index('idx_employees_tenant_status', ['tenantCode', 'status'])
@@ -18,7 +18,7 @@ import type { EmploymentContractEntity } from '../../employment/entities/employm
 @Check('chk_employees_dates', `ended_at IS NULL OR joined_at IS NULL OR ended_at >= joined_at`)
 export class EmployeeEntity extends BaseEntity {
   @Column({ name: 'employee_code', type: 'varchar', length: 64, nullable: false })
-  employeeCode!: string;
+  employeeCode: string;
 
   @Column({
     name: 'employment_type',
@@ -27,7 +27,7 @@ export class EmployeeEntity extends BaseEntity {
     enumName: 'employment_type',
     nullable: false,
   })
-  employmentType!: EmploymentType;
+  employmentType: EmploymentType;
 
   @Column({
     name: 'employment_status',
@@ -37,16 +37,16 @@ export class EmployeeEntity extends BaseEntity {
     nullable: false,
     default: EmploymentStatus.PENDING,
   })
-  employmentStatus!: EmploymentStatus;
+  employmentStatus: EmploymentStatus;
 
   @Column({ name: 'joined_at', type: 'timestamptz', nullable: true })
-  joinedAt!: Date | null;
+  joinedAt: Date | null;
 
   @Column({ name: 'probation_end_at', type: 'timestamptz', nullable: true })
-  probationEndAt!: Date | null;
+  probationEndAt: Date | null;
 
   @Column({ name: 'ended_at', type: 'timestamptz', nullable: true })
-  endedAt!: Date | null;
+  endedAt: Date | null;
 
   @Column({
     name: 'status',
@@ -56,7 +56,7 @@ export class EmployeeEntity extends BaseEntity {
     nullable: false,
     default: EmployeeStatus.INVITED,
   })
-  status!: EmployeeStatus;
+  status: EmployeeStatus;
 
   @OneToOne(() => EmployeeProfileEntity, (profile) => profile.employee, {
     cascade: true,

@@ -11,6 +11,7 @@ import { SqlModule } from '@new-hros/libs-sql';
 import { EmployeeModule } from './modules/employee/employee.module';
 import { EmploymentModule } from './modules/employment/employment.module';
 import { HealthModule } from './modules/health/health.module';
+import { ProvisioningModule } from './modules/provisioning/provisioning.module';
 
 @Module({
   imports: [
@@ -52,6 +53,7 @@ import { HealthModule } from './modules/health/health.module';
         retryDelay: 1000,
       }),
     }),
+    ProvisioningModule,
   ],
 })
 export class AppModule {}
