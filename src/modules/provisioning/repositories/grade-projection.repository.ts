@@ -7,6 +7,12 @@ export class GradeProjectionRepository extends BaseRepository<Grade> {
     super(Grade, transactionService);
   }
 
+  async findByIdAndTenant(id: string, tenantCode: string): Promise<Grade | null> {
+    return this.repository.findOne({
+      where: { id, tenantCode },
+    });
+  }
+
   async upsertProjection(data: Grade): Promise<Grade> {
     const existing = await this.findById(data.id);
 

@@ -11,6 +11,7 @@ import { SqlModule } from '@new-hros/libs-sql';
 import { EmployeeModule } from './modules/employee/employee.module';
 import { EmploymentModule } from './modules/employment/employment.module';
 import { HealthModule } from './modules/health/health.module';
+import { OutboxModule } from './modules/outbox/outbox.module';
 import { ProvisioningModule } from './modules/provisioning/provisioning.module';
 
 @Module({
@@ -38,6 +39,7 @@ import { ProvisioningModule } from './modules/provisioning/provisioning.module';
     HealthModule,
     EmployeeModule,
     EmploymentModule,
+    OutboxModule,
     SqlModule.forRootAsync({
       inject: [ConfigurationService],
       useFactory: (config: ConfigurationService) => ({

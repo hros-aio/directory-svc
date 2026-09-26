@@ -16,4 +16,7 @@ export enum TableName {
   LocationProjection = 'location_projections',
   GradeProjection = 'grade_projections',
   JobTitleProjection = 'job_title_projections',
+
+  // Outbox
+  OutboxEvent = 'outbox_events',
 }

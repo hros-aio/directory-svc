@@ -7,6 +7,12 @@ export class JobTitleProjectionRepository extends BaseRepository<JobTitle> {
     super(JobTitle, transactionService);
   }
 
+  async findByIdAndTenant(id: string, tenantCode: string): Promise<JobTitle | null> {
+    return this.repository.findOne({
+      where: { id, tenantCode },
+    });
+  }
+
   async upsertProjection(data: JobTitle): Promise<JobTitle> {
     const existing = await this.findById(data.id);
 
