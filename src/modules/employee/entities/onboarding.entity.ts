@@ -3,15 +3,15 @@ import { Column, Entity, Index, JoinColumn, OneToMany, OneToOne, Unique } from '
 
 import { EmployeeEntity } from './employee.entity';
 import { OnboardingRequirementEntity } from './onboarding-requirement.entity';
-import { OnboardingStatus } from '../../../common/enums';
+import { OnboardingStatus, TableName } from '../../../common/enums';
 
-@Entity('onboardings')
+@Entity(TableName.Onboarding)
 @Unique('uq_onboardings_tenant_id', ['tenantCode', 'id'])
 @Unique('uq_onboardings_employee', ['tenantCode', 'employeeId'])
 @Index('idx_onboardings_status', ['tenantCode', 'status'])
 export class OnboardingEntity extends BaseEntity {
   @Column({ name: 'employee_id', type: 'uuid', nullable: false })
-  employeeId!: string;
+  employeeId: string;
 
   @Column({
     name: 'status',
@@ -21,16 +21,16 @@ export class OnboardingEntity extends BaseEntity {
     nullable: false,
     default: OnboardingStatus.DRAFT,
   })
-  status!: OnboardingStatus;
+  status: OnboardingStatus;
 
   @Column({ name: 'started_at', type: 'timestamptz', nullable: true })
-  startedAt!: Date | null;
+  startedAt: Date | null;
 
   @Column({ name: 'submitted_at', type: 'timestamptz', nullable: true })
-  submittedAt!: Date | null;
+  submittedAt: Date | null;
 
   @Column({ name: 'completed_at', type: 'timestamptz', nullable: true })
-  completedAt!: Date | null;
+  completedAt: Date | null;
 
   @OneToOne(() => EmployeeEntity, (employee) => employee.onboarding, {
     onDelete: 'CASCADE',

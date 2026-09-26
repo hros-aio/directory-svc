@@ -3,7 +3,9 @@ import { Check, Column, Entity, Index, JoinColumn, ManyToOne, Unique } from 'typ
 
 import { EmployeeEntity } from '../../employee/entities/employee.entity';
 
-@Entity('employment_assignments')
+import { TableName } from '@/common';
+
+@Entity(TableName.EmploymentAssignment)
 @Unique('uq_employment_assignments_tenant_id', ['tenantCode', 'id'])
 @Index('idx_employment_assignments_employee', ['tenantCode', 'employeeId'])
 @Index('idx_employment_assignments_company', ['tenantCode', 'companyId'])
@@ -19,31 +21,31 @@ import { EmployeeEntity } from '../../employee/entities/employee.entity';
 )
 export class EmploymentAssignmentEntity extends BaseEntity {
   @Column({ name: 'employee_id', type: 'uuid', nullable: false })
-  employeeId!: string;
+  employeeId: string;
 
   @Column({ name: 'company_id', type: 'uuid', nullable: false })
-  companyId!: string;
+  companyId: string;
 
   @Column({ name: 'location_id', type: 'uuid', nullable: true })
-  locationId!: string | null;
+  locationId: string | null;
 
   @Column({ name: 'department_id', type: 'uuid', nullable: true })
-  departmentId!: string | null;
+  departmentId: string | null;
 
   @Column({ name: 'job_title_id', type: 'uuid', nullable: true })
-  jobTitleId!: string | null;
+  jobTitleId: string | null;
 
   @Column({ name: 'grade_id', type: 'uuid', nullable: true })
-  gradeId!: string | null;
+  gradeId: string | null;
 
   @Column({ name: 'manager_employee_id', type: 'uuid', nullable: true })
-  managerEmployeeId!: string | null;
+  managerEmployeeId: string | null;
 
   @Column({ name: 'effective_from', type: 'date', nullable: false })
-  effectiveFrom!: Date;
+  effectiveFrom: Date;
 
   @Column({ name: 'effective_to', type: 'date', nullable: true })
-  effectiveTo!: Date | null;
+  effectiveTo: Date | null;
 
   @ManyToOne(() => EmployeeEntity, (employee) => employee.assignments, {
     onDelete: 'CASCADE',

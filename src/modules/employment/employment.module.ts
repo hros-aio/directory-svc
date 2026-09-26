@@ -7,6 +7,6 @@ import { EmploymentAssignmentEntity, EmploymentContractEntity } from './entities
   imports: [TypeOrmModule.forFeature([EmploymentAssignmentEntity, EmploymentContractEntity])],
   controllers: [],
   providers: [],
-  exports: [TypeOrmModule],
+  exports: [],
 })
 export class EmploymentModule {}

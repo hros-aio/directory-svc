@@ -2,10 +2,10 @@ import { BaseEntity } from '@new-hros/libs-sql';
 import { Check, Column, Entity, Index, JoinColumn, ManyToOne, Unique } from 'typeorm';
 
 import { EmployeeEntity } from './employee.entity';
-import { TaxProfileStatus } from '../../../common/enums';
+import { TableName, TaxProfileStatus } from '../../../common/enums';
 import type { TaxMetadata } from '../../../common/interfaces';
 
-@Entity('employee_tax_profiles')
+@Entity(TableName.EmployeeTaxProfile)
 @Unique('uq_employee_tax_profiles_tenant_id', ['tenantCode', 'id'])
 @Index('idx_employee_tax_profiles_employee', ['tenantCode', 'employeeId'])
 @Index('idx_employee_tax_profiles_country', ['tenantCode', 'countryCode'])
@@ -19,13 +19,13 @@ import type { TaxMetadata } from '../../../common/interfaces';
 )
 export class EmployeeTaxProfileEntity extends BaseEntity {
   @Column({ name: 'employee_id', type: 'uuid', nullable: false })
-  employeeId!: string;
+  employeeId: string;
 
   @Column({ name: 'country_code', type: 'varchar', length: 2, nullable: false })
-  countryCode!: string;
+  countryCode: string;
 
   @Column({ name: 'tax_number', type: 'varchar', length: 128, nullable: true })
-  taxNumber!: string | null;
+  taxNumber: string | null;
 
   @Column({
     name: 'status',
@@ -35,16 +35,16 @@ export class EmployeeTaxProfileEntity extends BaseEntity {
     nullable: false,
     default: TaxProfileStatus.PENDING,
   })
-  status!: TaxProfileStatus;
+  status: TaxProfileStatus;
 
   @Column({ name: 'effective_from', type: 'date', nullable: true })
-  effectiveFrom!: Date | null;
+  effectiveFrom: Date | null;
 
   @Column({ name: 'effective_to', type: 'date', nullable: true })
-  effectiveTo!: Date | null;
+  effectiveTo: Date | null;
 
   @Column({ name: 'metadata', type: 'jsonb', nullable: true })
-  metadata!: TaxMetadata | null;
+  metadata: TaxMetadata | null;
 
   @ManyToOne(() => EmployeeEntity, (employee) => employee.taxProfiles, {
     onDelete: 'CASCADE',
