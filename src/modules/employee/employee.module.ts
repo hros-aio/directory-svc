@@ -25,6 +25,6 @@ import {
   ],
   controllers: [],
   providers: [],
-  exports: [TypeOrmModule],
+  exports: [],
 })
 export class EmployeeModule {}
