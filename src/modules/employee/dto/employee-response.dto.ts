@@ -31,34 +31,34 @@ export class EmployeeProfileResponseDto {
   firstName: string;
 
   @ApiPropertyOptional({ example: 'Alexander' })
-  middleName: string | null;
+  middleName: string;
 
   @ApiProperty({ example: 'Doe' })
   lastName: string;
 
   @ApiPropertyOptional({ example: 'Jane' })
-  preferredName: string | null;
+  preferredName: string;
 
   @ApiProperty({ example: 'Jane Alexander Doe' })
   fullName: string;
 
   @ApiPropertyOptional({ example: '1992-05-15' })
-  dateOfBirth: string | null;
+  dateOfBirth: string;
 
   @ApiPropertyOptional({ example: 'FEMALE' })
-  gender: string | null;
+  gender: string;
 
   @ApiPropertyOptional({ example: 'https://cdn.example.com/avatars/emp001.png' })
-  avatarUrl: string | null;
+  avatarUrl: string;
 
   @ApiPropertyOptional({ example: 'jane.doe@personal.com' })
-  personalEmail: string | null;
+  personalEmail: string;
 
   @ApiPropertyOptional({ example: '+15551234567' })
-  personalPhone: string | null;
+  personalPhone: string;
 
   @ApiPropertyOptional({ example: { city: 'San Francisco', countryCode: 'US' } })
-  address: Record<string, unknown> | null;
+  address: Record<string, unknown>;
 }
 
 export class AssignmentResponseDto {
@@ -69,25 +69,25 @@ export class AssignmentResponseDto {
   effectiveFrom: string;
 
   @ApiPropertyOptional({ example: null })
-  effectiveTo: string | null;
+  effectiveTo?: string;
 
   @ApiProperty({ type: () => ResolvedReferenceDto })
   company: ResolvedReferenceDto;
 
   @ApiPropertyOptional({ type: () => ResolvedReferenceDto })
-  department: ResolvedReferenceDto | null;
+  department?: ResolvedReferenceDto;
 
   @ApiPropertyOptional({ type: () => ResolvedReferenceDto })
-  location: ResolvedReferenceDto | null;
+  location?: ResolvedReferenceDto;
 
   @ApiPropertyOptional({ type: () => ResolvedReferenceDto })
-  grade: ResolvedReferenceDto | null;
+  grade?: ResolvedReferenceDto;
 
   @ApiPropertyOptional({ type: () => ResolvedReferenceDto })
-  jobTitle: ResolvedReferenceDto | null;
+  jobTitle?: ResolvedReferenceDto;
 
   @ApiPropertyOptional({ type: () => ResolvedManagerDto })
-  manager: ResolvedManagerDto | null;
+  manager?: ResolvedManagerDto;
 }
 
 export class EmployeeResponseDto {
@@ -110,13 +110,13 @@ export class EmployeeResponseDto {
   employmentStatus: string;
 
   @ApiPropertyOptional({ example: '2026-10-01T00:00:00.000Z' })
-  joinedAt: string | null;
+  joinedAt: string;
 
   @ApiPropertyOptional({ example: '2027-01-01T00:00:00.000Z' })
-  probationEndAt: string | null;
+  probationEndAt: string;
 
   @ApiPropertyOptional({ example: null })
-  endedAt: string | null;
+  endedAt: string;
 
   @ApiProperty({ example: '2026-09-26T14:50:00.000Z' })
   createdAt: string;
@@ -136,12 +136,12 @@ export class EmployeeResponseDto {
     assignment: EmploymentAssignmentEntity,
     resolved: {
       company: { id: string; code?: string; name: string };
-      department: { id: string; code?: string; name: string } | null;
-      location: { id: string; name: string } | null;
-      grade: { id: string; code?: string; name: string } | null;
-      jobTitle: { id: string; code?: string; name: string } | null;
+      department?: { id: string; code?: string; name: string };
+      location?: { id: string; name: string };
+      grade?: { id: string; code?: string; name: string };
+      jobTitle?: { id: string; code?: string; name: string };
     },
-    resolvedManager: ResolvedManagerDto | null,
+    resolvedManager?: ResolvedManagerDto,
   ): EmployeeResponseDto {
     const fullName = [profile.firstName, profile.middleName, profile.lastName]
       .filter(Boolean)
@@ -149,16 +149,16 @@ export class EmployeeResponseDto {
 
     const profileDto: EmployeeProfileResponseDto = {
       firstName: profile.firstName,
-      middleName: profile.middleName,
+      middleName: profile.middleName || '',
       lastName: profile.lastName,
-      preferredName: profile.preferredName,
+      preferredName: profile.preferredName || '',
       fullName,
-      dateOfBirth: profile.dateOfBirth ? profile.dateOfBirth.toISOString().split('T')[0] : null,
-      gender: profile.gender,
-      avatarUrl: profile.avatarUrl,
-      personalEmail: profile.personalEmail,
-      personalPhone: profile.personalPhone,
-      address: profile.address as Record<string, unknown> | null,
+      dateOfBirth: profile.dateOfBirth ? profile.dateOfBirth.toISOString().split('T')[0] : '',
+      gender: profile.gender || '',
+      avatarUrl: profile.avatarUrl || '',
+      personalEmail: profile.personalEmail || '',
+      personalPhone: profile.personalPhone || '',
+      address: profile.address as Record<string, unknown>,
     };
 
     const assignmentDto: AssignmentResponseDto = {
@@ -171,7 +171,7 @@ export class EmployeeResponseDto {
         ? assignment.effectiveTo instanceof Date
           ? assignment.effectiveTo.toISOString().split('T')[0]
           : String(assignment.effectiveTo)
-        : null,
+        : '',
       company: resolved.company,
       department: resolved.department,
       location: resolved.location,
@@ -187,9 +187,9 @@ export class EmployeeResponseDto {
       status: employee.status,
       employmentType: employee.employmentType,
       employmentStatus: employee.employmentStatus,
-      joinedAt: employee.joinedAt ? employee.joinedAt.toISOString() : null,
-      probationEndAt: employee.probationEndAt ? employee.probationEndAt.toISOString() : null,
-      endedAt: employee.endedAt ? employee.endedAt.toISOString() : null,
+      joinedAt: employee.joinedAt ? employee.joinedAt.toISOString() : '',
+      probationEndAt: employee.probationEndAt ? employee.probationEndAt.toISOString() : '',
+      endedAt: employee.endedAt ? employee.endedAt.toISOString() : '',
       createdAt: employee.createdAt ? employee.createdAt.toISOString() : new Date().toISOString(),
       updatedAt: employee.updatedAt ? employee.updatedAt.toISOString() : new Date().toISOString(),
       profile: profileDto,

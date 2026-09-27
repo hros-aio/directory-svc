@@ -109,11 +109,11 @@ Returns the aggregated employee profile, employment status, and current assignme
 ## 5. Setting Reference Validation
 
 Validation uses local TypeORM repositories injected into `EmployeeReferenceValidator`:
-- `CompanyProjectionRepository.findByIdAndTenant(companyId, tenantCode)`
-- `DepartmentProjectionRepository.findByIdAndTenant(departmentId, tenantCode)`
-- `LocationProjectionRepository.findByIdAndTenant(locationId, tenantCode)`
-- `GradeProjectionRepository.findByIdAndTenant(gradeId, tenantCode)`
-- `JobTitleProjectionRepository.findByIdAndTenant(jobTitleId, tenantCode)`
+- `CompanyProjectionRepository.findById(companyId)`
+- `DepartmentProjectionRepository.findById(departmentId)`
+- `LocationProjectionRepository.findById(locationId)`
+- `GradeProjectionRepository.findById(gradeId)`
+- `JobTitleProjectionRepository.findById(jobTitleId)`
 
 If any entity does not exist: throws `NotFoundException` (`COMPANY_NOT_FOUND`, etc.).  
 If parent company mismatch occurs: throws `BusinessException` (`INVALID_ORGANIZATION_ASSIGNMENT`).  
@@ -139,24 +139,24 @@ The employee assignment is established using the versioned assignment model:
 ```typescript
 return await this.transactionService.runInTransaction(async () => {
   // 1. Persist Employee
-  const employee = await this.employeeRepository.createAndSave(employeeData);
+  const employee = await this.employeeRepository.create(employeeData);
 
   // 2. Persist Profile
-  const profile = await this.profileRepository.createAndSave({
+  const profile = await this.profileRepository.create({
     ...profileData,
     employeeId: employee.id,
     tenantCode,
   });
 
   // 3. Persist Assignment
-  const assignment = await this.assignmentRepository.createAndSave({
+  const assignment = await this.assignmentRepository.create({
     ...assignmentData,
     employeeId: employee.id,
     tenantCode,
   });
 
   // 4. Persist Outbox Event
-  const outboxEvent = await this.outboxRepository.createAndSave({
+  const outboxEvent = await this.outboxRepository.create({
     tenantCode,
     aggregateType: 'EMPLOYEE',
     aggregateId: employee.id,
@@ -337,30 +337,31 @@ classDiagram
         -LocationProjectionRepository locRepo
         -GradeProjectionRepository gradeRepo
         -JobTitleProjectionRepository jobTitleRepo
-        +validate(dto: CreateEmployeeDto, tenantCode: string): Promise~ResolvedReferences~
+        +validateAndResolve(dto: CreateEmployeeDto): Promise~ValidatedOrganizationReferences~
     }
 
     class ManagerValidator {
         -EmployeeRepository employeeRepo
-        +validate(managerId: string, tenantCode: string): Promise~EmployeeEntity~
+        +validateManager(managerId: string): Promise~ManagerValidationResult~
     }
 
     class EmployeeRepository {
-        +findByCode(tenantCode: string, code: string): Promise~EmployeeEntity~
-        +findByIdAndTenant(id: string, tenantCode: string): Promise~EmployeeEntity~
-        +createAndSave(data: Partial~EmployeeEntity~): Promise~EmployeeEntity~
+        +findByCode(code: string): Promise~EmployeeEntity~
+        +findById(id: string): Promise~EmployeeEntity~
+        +create(data: DeepPartial~EmployeeEntity~): Promise~EmployeeEntity~
     }
 
     class EmployeeProfileRepository {
-        +createAndSave(data: Partial~EmployeeProfileEntity~): Promise~EmployeeProfileEntity~
+        +create(data: DeepPartial~EmployeeProfileEntity~): Promise~EmployeeProfileEntity~
     }
 
     class EmploymentAssignmentRepository {
-        +createAndSave(data: Partial~EmploymentAssignmentEntity~): Promise~EmploymentAssignmentEntity~
+        +findCurrentAssignment(employeeId: string, tenantCode: string): Promise~EmploymentAssignmentEntity~
+        +create(data: DeepPartial~EmploymentAssignmentEntity~): Promise~EmploymentAssignmentEntity~
     }
 
     class OutboxRepository {
-        +createAndSave(data: Partial~OutboxEventEntity~): Promise~OutboxEventEntity~
+        +create(data: DeepPartial~OutboxEventEntity~): Promise~OutboxEventEntity~
     }
 
     class CreateEmployeeDto {

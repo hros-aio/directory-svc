@@ -14,10 +14,10 @@ import { ResolvedReferenceDto } from '../dto/employee-response.dto';
 
 export interface ValidatedOrganizationReferences {
   readonly company: ResolvedReferenceDto;
-  readonly department: ResolvedReferenceDto | null;
-  readonly location: ResolvedReferenceDto | null;
-  readonly grade: ResolvedReferenceDto | null;
-  readonly jobTitle: ResolvedReferenceDto | null;
+  readonly department?: ResolvedReferenceDto;
+  readonly location?: ResolvedReferenceDto;
+  readonly grade?: ResolvedReferenceDto;
+  readonly jobTitle?: ResolvedReferenceDto;
 }
 
 @Injectable()
@@ -30,12 +30,9 @@ export class EmployeeReferenceValidator {
     private readonly jobTitleRepository: JobTitleProjectionRepository,
   ) {}
 
-  async validateAndResolve(
-    dto: CreateEmployeeDto,
-    tenantCode: string,
-  ): Promise<ValidatedOrganizationReferences> {
+  async validateAndResolve(dto: CreateEmployeeDto): Promise<ValidatedOrganizationReferences> {
     // 1. Validate Company
-    const company = await this.companyRepository.findByIdAndTenant(dto.companyId, tenantCode);
+    const company = await this.companyRepository.findById(dto.companyId);
     if (!company || company.status !== CompanyStatus.ACTIVE) {
       throw new BusinessException(
         `Company '${dto.companyId}' not found or inactive`,
@@ -45,12 +42,9 @@ export class EmployeeReferenceValidator {
     }
 
     // 2. Validate Department (if provided)
-    let resolvedDepartment: ResolvedReferenceDto | null = null;
+    let resolvedDepartment: ResolvedReferenceDto | undefined = undefined;
     if (dto.departmentId) {
-      const department = await this.departmentRepository.findByIdAndTenant(
-        dto.departmentId,
-        tenantCode,
-      );
+      const department = await this.departmentRepository.findById(dto.departmentId);
       if (!department || department.status !== MasterDataStatus.ACTIVE) {
         throw new BusinessException(
           `Department '${dto.departmentId}' not found or inactive`,
@@ -73,9 +67,9 @@ export class EmployeeReferenceValidator {
     }
 
     // 3. Validate Location (if provided)
-    let resolvedLocation: ResolvedReferenceDto | null = null;
+    let resolvedLocation: ResolvedReferenceDto | undefined = undefined;
     if (dto.locationId) {
-      const location = await this.locationRepository.findByIdAndTenant(dto.locationId, tenantCode);
+      const location = await this.locationRepository.findById(dto.locationId);
       if (!location || location.status !== MasterDataStatus.ACTIVE) {
         throw new BusinessException(
           `Location '${dto.locationId}' not found or inactive`,
@@ -98,9 +92,9 @@ export class EmployeeReferenceValidator {
     }
 
     // 4. Validate Grade (if provided)
-    let resolvedGrade: ResolvedReferenceDto | null = null;
+    let resolvedGrade: ResolvedReferenceDto | undefined = undefined;
     if (dto.gradeId) {
-      const grade = await this.gradeRepository.findByIdAndTenant(dto.gradeId, tenantCode);
+      const grade = await this.gradeRepository.findById(dto.gradeId);
       if (!grade || grade.status !== MasterDataStatus.ACTIVE) {
         throw new BusinessException(
           `Grade '${dto.gradeId}' not found or inactive`,
@@ -116,9 +110,9 @@ export class EmployeeReferenceValidator {
     }
 
     // 5. Validate Job Title (if provided)
-    let resolvedJobTitle: ResolvedReferenceDto | null = null;
+    let resolvedJobTitle: ResolvedReferenceDto | undefined = undefined;
     if (dto.jobTitleId) {
-      const jobTitle = await this.jobTitleRepository.findByIdAndTenant(dto.jobTitleId, tenantCode);
+      const jobTitle = await this.jobTitleRepository.findById(dto.jobTitleId);
       if (!jobTitle || jobTitle.status !== MasterDataStatus.ACTIVE) {
         throw new BusinessException(
           `Job Title '${dto.jobTitleId}' not found or inactive`,

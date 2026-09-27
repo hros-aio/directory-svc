@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { LoggerService, RequestContext, RequestContextService } from '@new-hros/libs-core';
+import { AuthContext, LoggerService, RequestContextService } from '@new-hros/libs-core';
 import { TransactionService } from '@new-hros/libs-sql';
 
 import { EmployeeService } from './employee.service';
@@ -49,22 +49,34 @@ describe('EmployeeService', () => {
   };
 
   beforeEach(async () => {
+    jest.spyOn(RequestContextService, 'getTenantCode').mockReturnValue(tenantCode);
+    jest.spyOn(RequestContextService, 'getUser').mockReturnValue({
+      userId,
+      tenantCode,
+      sessionId: 'session-1',
+      roles: [],
+      scopes: [],
+      permissions: [],
+    } as AuthContext);
+    jest.spyOn(RequestContextService, 'getTraceId').mockReturnValue('trace-123');
+    jest.spyOn(RequestContextService, 'getRequestId').mockReturnValue('req-123');
+
     employeeRepo = {
       findByCode: jest.fn(),
-      findByIdAndTenant: jest.fn(),
-      createAndSave: jest.fn(),
+      findById: jest.fn(),
+      create: jest.fn(),
     } as unknown as jest.Mocked<EmployeeRepository>;
 
     profileRepo = {
-      createAndSave: jest.fn(),
+      create: jest.fn(),
     } as unknown as jest.Mocked<EmployeeProfileRepository>;
 
     assignmentRepo = {
-      createAndSave: jest.fn(),
+      create: jest.fn(),
     } as unknown as jest.Mocked<EmploymentAssignmentRepository>;
 
     outboxRepo = {
-      createAndSave: jest.fn(),
+      create: jest.fn(),
     } as unknown as jest.Mocked<OutboxRepository>;
 
     referenceValidator = {
@@ -133,7 +145,7 @@ describe('EmployeeService', () => {
       createdAt: new Date('2026-09-26T12:00:00.000Z'),
       updatedAt: new Date('2026-09-26T12:00:00.000Z'),
     } as unknown as EmployeeEntity;
-    employeeRepo.createAndSave.mockResolvedValue(mockSavedEmployee);
+    employeeRepo.create.mockResolvedValue(mockSavedEmployee);
 
     const mockSavedProfile = {
       id: 'profile-uuid-1',
@@ -150,7 +162,7 @@ describe('EmployeeService', () => {
       personalPhone: null,
       address: null,
     } as unknown as EmployeeProfileEntity;
-    profileRepo.createAndSave.mockResolvedValue(mockSavedProfile);
+    profileRepo.create.mockResolvedValue(mockSavedProfile);
 
     const mockSavedAssignment = {
       id: 'assignment-uuid-1',
@@ -165,42 +177,21 @@ describe('EmployeeService', () => {
       effectiveFrom: new Date('2026-10-01'),
       effectiveTo: null,
     } as unknown as EmploymentAssignmentEntity;
-    assignmentRepo.createAndSave.mockResolvedValue(mockSavedAssignment);
+    assignmentRepo.create.mockResolvedValue(mockSavedAssignment);
 
-    outboxRepo.createAndSave.mockResolvedValue({
+    outboxRepo.create.mockResolvedValue({
       id: 'outbox-uuid-1',
       status: OutboxStatus.PENDING,
     } as unknown as OutboxEventEntity);
 
-    const mockContext: RequestContext = {
-      tenantCode,
-      user: {
-        userId,
-        tenantCode,
-        sessionId: 'session-123',
-        roles: [],
-        scopes: [],
-        permissions: [],
-      },
-      traceId: 'trace-123',
-      requestId: 'req-123',
-      clientMetadata: {
-        ip: '127.0.0.1',
-        userAgent: 'test-agent',
-      },
-      requestTimestamp: new Date(),
-    };
-
-    const response = await RequestContextService.run(mockContext, async () =>
-      service.createEmployee(validDto),
-    );
+    const response = await service.create(validDto);
 
     expect(response.id).toBe('emp-uuid-1');
     expect(response.employeeCode).toBe('EMP-00101');
     expect(response.profile.fullName).toBe('Jane Doe');
     expect(response.currentAssignment.company.name).toBe('Acme Corp');
     expect(response.currentAssignment.manager?.fullName).toBe('Alice Smith');
-    expect(outboxRepo.createAndSave).toHaveBeenCalledWith(
+    expect(outboxRepo.create).toHaveBeenCalledWith(
       expect.objectContaining({
         eventType: 'directory.employee.created',
         tenantCode,
@@ -220,28 +211,7 @@ describe('EmployeeService', () => {
       employeeCode: 'EMP-00101',
     } as unknown as EmployeeEntity);
 
-    const mockContext: RequestContext = {
-      tenantCode,
-      user: {
-        userId,
-        tenantCode,
-        sessionId: 'session-123',
-        roles: [],
-        scopes: [],
-        permissions: [],
-      },
-      traceId: 'trace-123',
-      requestId: 'req-123',
-      clientMetadata: {
-        ip: '127.0.0.1',
-        userAgent: 'test-agent',
-      },
-      requestTimestamp: new Date(),
-    };
-
-    await expect(
-      RequestContextService.run(mockContext, async () => service.createEmployee(validDto)),
-    ).rejects.toMatchObject({
+    await expect(service.create(validDto)).rejects.toMatchObject({
       code: 'DUPLICATE_EMPLOYEE_CODE',
       status: 409,
     });

@@ -13,7 +13,7 @@ describe('EmployeeController', () => {
 
   beforeEach(async () => {
     service = {
-      createEmployee: jest.fn(),
+      create: jest.fn(),
     } as unknown as jest.Mocked<EmployeeService>;
 
     const module: TestingModule = await Test.createTestingModule({
@@ -29,7 +29,7 @@ describe('EmployeeController', () => {
     controller = module.get<EmployeeController>(EmployeeController);
   });
 
-  it('should delegate create request to EmployeeService with context', async () => {
+  it('should delegate create request to EmployeeService', async () => {
     const dto: CreateEmployeeDto = {
       employeeCode: 'EMP-001',
       firstName: 'John',
@@ -43,11 +43,11 @@ describe('EmployeeController', () => {
       employeeCode: 'EMP-001',
     } as unknown as EmployeeResponseDto;
 
-    service.createEmployee.mockResolvedValue(expectedResponse);
+    service.create.mockResolvedValue(expectedResponse);
 
     const result = await controller.create(dto);
 
     expect(result).toBe(expectedResponse);
-    expect(service.createEmployee).toHaveBeenCalledWith(dto);
+    expect(service.create).toHaveBeenCalledWith(dto);
   });
 });
