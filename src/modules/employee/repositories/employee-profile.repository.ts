@@ -17,9 +17,4 @@ export class EmployeeProfileRepository extends BaseRepository<EmployeeProfileEnt
       where: { employeeId, tenantCode },
     });
   }
-
-  async createAndSave(data: Partial<EmployeeProfileEntity>): Promise<EmployeeProfileEntity> {
-    const entity = this.repository.create(data);
-    return this.repository.save(entity);
-  }
 }

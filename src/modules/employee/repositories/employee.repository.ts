@@ -12,9 +12,4 @@ export class EmployeeRepository extends BaseRepository<EmployeeEntity> {
   async findByCode(employeeCode: string): Promise<EmployeeEntity | null> {
     return this.findOne({ employeeCode });
   }
-
-  async createAndSave(data: Partial<EmployeeEntity>): Promise<EmployeeEntity> {
-    const entity = this.repository.create(data);
-    return this.repository.save(entity);
-  }
 }

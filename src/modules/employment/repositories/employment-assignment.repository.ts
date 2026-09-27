@@ -22,11 +22,4 @@ export class EmploymentAssignmentRepository extends BaseRepository<EmploymentAss
       },
     });
   }
-
-  async createAndSave(
-    data: Partial<EmploymentAssignmentEntity>,
-  ): Promise<EmploymentAssignmentEntity> {
-    const entity = this.repository.create(data);
-    return this.repository.save(entity);
-  }
 }

@@ -63,7 +63,7 @@ export class EmployeeService {
     const { employee, profile, assignment } = await this.transactionService.runInTransaction(
       async () => {
         // 4.1 Persist Employee Entity
-        const savedEmployee = await this.employeeRepository.createAndSave({
+        const savedEmployee = await this.employeeRepository.create({
           tenantCode,
           employeeCode: normalizedCode,
           employmentType: dto.employmentType,
@@ -75,7 +75,7 @@ export class EmployeeService {
         });
 
         // 4.2 Persist Employee Profile Entity
-        const savedProfile = await this.profileRepository.createAndSave({
+        const savedProfile = await this.profileRepository.create({
           tenantCode,
           employeeId: savedEmployee.id,
           firstName: dto.firstName.trim(),
@@ -97,7 +97,7 @@ export class EmployeeService {
             ? new Date(dto.joinedAt)
             : new Date();
 
-        const savedAssignment = await this.assignmentRepository.createAndSave({
+        const savedAssignment = await this.assignmentRepository.create({
           tenantCode,
           employeeId: savedEmployee.id,
           companyId: dto.companyId,
@@ -130,7 +130,7 @@ export class EmployeeService {
             : new Date().toISOString(),
         };
 
-        await this.outboxRepository.createAndSave({
+        await this.outboxRepository.create({
           tenantCode,
           aggregateType: 'EMPLOYEE',
           aggregateId: savedEmployee.id,

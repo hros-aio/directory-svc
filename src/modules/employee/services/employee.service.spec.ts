@@ -64,19 +64,19 @@ describe('EmployeeService', () => {
     employeeRepo = {
       findByCode: jest.fn(),
       findById: jest.fn(),
-      createAndSave: jest.fn(),
+      create: jest.fn(),
     } as unknown as jest.Mocked<EmployeeRepository>;
 
     profileRepo = {
-      createAndSave: jest.fn(),
+      create: jest.fn(),
     } as unknown as jest.Mocked<EmployeeProfileRepository>;
 
     assignmentRepo = {
-      createAndSave: jest.fn(),
+      create: jest.fn(),
     } as unknown as jest.Mocked<EmploymentAssignmentRepository>;
 
     outboxRepo = {
-      createAndSave: jest.fn(),
+      create: jest.fn(),
     } as unknown as jest.Mocked<OutboxRepository>;
 
     referenceValidator = {
@@ -145,7 +145,7 @@ describe('EmployeeService', () => {
       createdAt: new Date('2026-09-26T12:00:00.000Z'),
       updatedAt: new Date('2026-09-26T12:00:00.000Z'),
     } as unknown as EmployeeEntity;
-    employeeRepo.createAndSave.mockResolvedValue(mockSavedEmployee);
+    employeeRepo.create.mockResolvedValue(mockSavedEmployee);
 
     const mockSavedProfile = {
       id: 'profile-uuid-1',
@@ -162,7 +162,7 @@ describe('EmployeeService', () => {
       personalPhone: null,
       address: null,
     } as unknown as EmployeeProfileEntity;
-    profileRepo.createAndSave.mockResolvedValue(mockSavedProfile);
+    profileRepo.create.mockResolvedValue(mockSavedProfile);
 
     const mockSavedAssignment = {
       id: 'assignment-uuid-1',
@@ -177,9 +177,9 @@ describe('EmployeeService', () => {
       effectiveFrom: new Date('2026-10-01'),
       effectiveTo: null,
     } as unknown as EmploymentAssignmentEntity;
-    assignmentRepo.createAndSave.mockResolvedValue(mockSavedAssignment);
+    assignmentRepo.create.mockResolvedValue(mockSavedAssignment);
 
-    outboxRepo.createAndSave.mockResolvedValue({
+    outboxRepo.create.mockResolvedValue({
       id: 'outbox-uuid-1',
       status: OutboxStatus.PENDING,
     } as unknown as OutboxEventEntity);
@@ -191,7 +191,7 @@ describe('EmployeeService', () => {
     expect(response.profile.fullName).toBe('Jane Doe');
     expect(response.currentAssignment.company.name).toBe('Acme Corp');
     expect(response.currentAssignment.manager?.fullName).toBe('Alice Smith');
-    expect(outboxRepo.createAndSave).toHaveBeenCalledWith(
+    expect(outboxRepo.create).toHaveBeenCalledWith(
       expect.objectContaining({
         eventType: 'directory.employee.created',
         tenantCode,

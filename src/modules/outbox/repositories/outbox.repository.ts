@@ -8,9 +8,4 @@ export class OutboxRepository extends BaseRepository<OutboxEventEntity> {
   constructor(transactionService: TransactionService) {
     super(OutboxEventEntity, transactionService);
   }
-
-  async createAndSave(data: Partial<OutboxEventEntity>): Promise<OutboxEventEntity> {
-    const entity = this.repository.create(data);
-    return this.repository.save(entity);
-  }
 }
