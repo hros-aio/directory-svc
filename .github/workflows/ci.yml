@@ -20,16 +20,16 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v3
-        with:
-          version: 9
-          run_install: false
+          cache: 'pnpm'
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -50,16 +50,16 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v3
-        with:
-          version: 9
-          run_install: false
+          cache: 'pnpm'
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -73,9 +73,9 @@ jobs:
 
     services:
       postgres:
-        image: postgres:18-alpine
+        image: postgres:16-alpine
         env:
-          POSTGRES_DB: setting_db
+          POSTGRES_DB: hrms_directory_db
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgrespassword
         ports:
@@ -96,4 +96,4 @@ jobs:
         env:
           PGPASSWORD: postgrespassword
         run: |
-          psql -h localhost -U postgres -d setting_db -f schema.sql
+          psql -h localhost -U postgres -d hrms_directory_db -f schema.sql

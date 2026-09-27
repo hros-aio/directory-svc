@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { LoggerService } from '@new-hros/libs-core';
+import { LoggerService, RequestContext, RequestContextService } from '@new-hros/libs-core';
 import { TransactionService } from '@new-hros/libs-sql';
 
 import { EmployeeService } from './employee.service';
@@ -172,11 +172,28 @@ describe('EmployeeService', () => {
       status: OutboxStatus.PENDING,
     } as unknown as OutboxEventEntity);
 
-    const response = await service.createEmployee(validDto, {
+    const mockContext: RequestContext = {
       tenantCode,
-      userId,
+      user: {
+        userId,
+        tenantCode,
+        sessionId: 'session-123',
+        roles: [],
+        scopes: [],
+        permissions: [],
+      },
       traceId: 'trace-123',
-    });
+      requestId: 'req-123',
+      clientMetadata: {
+        ip: '127.0.0.1',
+        userAgent: 'test-agent',
+      },
+      requestTimestamp: new Date(),
+    };
+
+    const response = await RequestContextService.run(mockContext, async () =>
+      service.createEmployee(validDto),
+    );
 
     expect(response.id).toBe('emp-uuid-1');
     expect(response.employeeCode).toBe('EMP-00101');
@@ -203,7 +220,28 @@ describe('EmployeeService', () => {
       employeeCode: 'EMP-00101',
     } as unknown as EmployeeEntity);
 
-    await expect(service.createEmployee(validDto, { tenantCode, userId })).rejects.toMatchObject({
+    const mockContext: RequestContext = {
+      tenantCode,
+      user: {
+        userId,
+        tenantCode,
+        sessionId: 'session-123',
+        roles: [],
+        scopes: [],
+        permissions: [],
+      },
+      traceId: 'trace-123',
+      requestId: 'req-123',
+      clientMetadata: {
+        ip: '127.0.0.1',
+        userAgent: 'test-agent',
+      },
+      requestTimestamp: new Date(),
+    };
+
+    await expect(
+      RequestContextService.run(mockContext, async () => service.createEmployee(validDto)),
+    ).rejects.toMatchObject({
       code: 'DUPLICATE_EMPLOYEE_CODE',
       status: 409,
     });

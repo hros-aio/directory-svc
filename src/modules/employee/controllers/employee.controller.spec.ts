@@ -45,13 +45,9 @@ describe('EmployeeController', () => {
 
     service.createEmployee.mockResolvedValue(expectedResponse);
 
-    const result = await controller.create(dto, 'tenant-123', 'user-456', undefined, 'trace-789');
+    const result = await controller.create(dto);
 
     expect(result).toBe(expectedResponse);
-    expect(service.createEmployee).toHaveBeenCalledWith(dto, {
-      tenantCode: 'tenant-123',
-      userId: 'user-456',
-      traceId: 'trace-789',
-    });
+    expect(service.createEmployee).toHaveBeenCalledWith(dto);
   });
 });
