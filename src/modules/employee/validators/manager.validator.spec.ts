@@ -12,7 +12,7 @@ describe('ManagerValidator', () => {
 
   beforeEach(async () => {
     employeeRepo = {
-      findByIdAndTenant: jest.fn(),
+      findById: jest.fn(),
     } as unknown as jest.Mocked<EmployeeRepository>;
 
     const module: TestingModule = await Test.createTestingModule({
@@ -23,7 +23,7 @@ describe('ManagerValidator', () => {
   });
 
   it('should successfully validate an active manager with full profile', async () => {
-    employeeRepo.findByIdAndTenant.mockResolvedValue({
+    employeeRepo.findById.mockResolvedValue({
       id: 'mgr-1',
       tenantCode,
       employeeCode: 'MGR-001',
@@ -36,7 +36,7 @@ describe('ManagerValidator', () => {
       },
     } as unknown as EmployeeEntity);
 
-    const result = await validator.validateManager('mgr-1', tenantCode);
+    const result = await validator.validateManager('mgr-1');
     expect(result.resolved).toEqual({
       id: 'mgr-1',
       employeeCode: 'MGR-001',
@@ -45,16 +45,16 @@ describe('ManagerValidator', () => {
   });
 
   it('should throw MANAGER_NOT_FOUND when manager does not exist', async () => {
-    employeeRepo.findByIdAndTenant.mockResolvedValue(null);
+    employeeRepo.findById.mockResolvedValue(null);
 
-    await expect(validator.validateManager('non-existent-mgr', tenantCode)).rejects.toMatchObject({
+    await expect(validator.validateManager('non-existent-mgr')).rejects.toMatchObject({
       code: 'MANAGER_NOT_FOUND',
       status: 404,
     });
   });
 
   it('should throw INVALID_MANAGER when manager is terminated or inactive', async () => {
-    employeeRepo.findByIdAndTenant.mockResolvedValue({
+    employeeRepo.findById.mockResolvedValue({
       id: 'mgr-1',
       tenantCode,
       employeeCode: 'MGR-001',
@@ -62,7 +62,7 @@ describe('ManagerValidator', () => {
       employmentStatus: EmploymentStatus.ENDED,
     } as unknown as EmployeeEntity);
 
-    await expect(validator.validateManager('mgr-1', tenantCode)).rejects.toMatchObject({
+    await expect(validator.validateManager('mgr-1')).rejects.toMatchObject({
       code: 'INVALID_MANAGER',
       status: 400,
     });

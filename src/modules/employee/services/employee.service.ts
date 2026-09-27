@@ -3,13 +3,10 @@ import { BusinessException, LoggerService, RequestContextService } from '@new-hr
 import { TransactionService } from '@new-hros/libs-sql';
 
 import { EmployeeStatus, EmploymentStatus, OutboxStatus } from '../../../common/enums';
-import { EmploymentAssignmentEntity } from '../../employment/entities/employment-assignment.entity';
 import { EmploymentAssignmentRepository } from '../../employment/repositories/employment-assignment.repository';
 import { OutboxRepository } from '../../outbox/repositories/outbox.repository';
 import { CreateEmployeeDto } from '../dto/create-employee.dto';
 import { EmployeeResponseDto, ResolvedManagerDto } from '../dto/employee-response.dto';
-import { EmployeeProfileEntity } from '../entities/employee-profile.entity';
-import { EmployeeEntity } from '../entities/employee.entity';
 import { EmployeeProfileRepository } from '../repositories/employee-profile.repository';
 import { EmployeeRepository } from '../repositories/employee.repository';
 import { EmployeeReferenceValidator } from '../validators/employee-reference.validator';
@@ -37,13 +34,13 @@ export class EmployeeService {
     @Optional() private readonly loggerService?: LoggerService,
   ) {}
 
-  async createEmployee(dto: CreateEmployeeDto): Promise<EmployeeResponseDto> {
+  async create(dto: CreateEmployeeDto): Promise<EmployeeResponseDto> {
     const tenantCode = RequestContextService.getTenantCode();
     const actorId = RequestContextService.getUser().userId;
     const normalizedCode = dto.employeeCode.trim();
 
     // 1. Check duplicate employee code within tenant
-    const existingEmployee = await this.employeeRepository.findByCode(tenantCode, normalizedCode);
+    const existingEmployee = await this.employeeRepository.findByCode(normalizedCode);
     if (existingEmployee) {
       throw new BusinessException(
         `Employee with code '${normalizedCode}' already exists in tenant '${tenantCode}'`,
@@ -53,15 +50,12 @@ export class EmployeeService {
     }
 
     // 2. Validate Setting reference projections
-    const resolvedReferences = await this.referenceValidator.validateAndResolve(dto, tenantCode);
+    const resolvedReferences = await this.referenceValidator.validateAndResolve(dto);
 
     // 3. Validate Manager (if supplied)
-    let resolvedManager: ResolvedManagerDto | null = null;
+    let resolvedManager: ResolvedManagerDto | undefined = undefined;
     if (dto.managerId) {
-      const managerValidationResult = await this.managerValidator.validateManager(
-        dto.managerId,
-        tenantCode,
-      );
+      const managerValidationResult = await this.managerValidator.validateManager(dto.managerId);
       resolvedManager = managerValidationResult.resolved;
     }
 
@@ -69,7 +63,7 @@ export class EmployeeService {
     const { employee, profile, assignment } = await this.transactionService.runInTransaction(
       async () => {
         // 4.1 Persist Employee Entity
-        const employeeToCreate: Partial<EmployeeEntity> = {
+        const savedEmployee = await this.employeeRepository.create({
           tenantCode,
           employeeCode: normalizedCode,
           employmentType: dto.employmentType,
@@ -78,11 +72,10 @@ export class EmployeeService {
           joinedAt: dto.joinedAt ? new Date(dto.joinedAt) : null,
           probationEndAt: dto.probationEndAt ? new Date(dto.probationEndAt) : null,
           endedAt: dto.endedAt ? new Date(dto.endedAt) : null,
-        };
-        const savedEmployee = await this.employeeRepository.createAndSave(employeeToCreate);
+        });
 
         // 4.2 Persist Employee Profile Entity
-        const profileToCreate: Partial<EmployeeProfileEntity> = {
+        const savedProfile = await this.profileRepository.create({
           tenantCode,
           employeeId: savedEmployee.id,
           firstName: dto.firstName.trim(),
@@ -95,8 +88,7 @@ export class EmployeeService {
           personalEmail: dto.personalEmail ?? null,
           personalPhone: dto.personalPhone ?? null,
           address: dto.address ?? null,
-        };
-        const savedProfile = await this.profileRepository.createAndSave(profileToCreate);
+        });
 
         // 4.3 Persist Employment Assignment Entity
         const effectiveFromDate = dto.effectiveFrom
@@ -105,7 +97,7 @@ export class EmployeeService {
             ? new Date(dto.joinedAt)
             : new Date();
 
-        const assignmentToCreate: Partial<EmploymentAssignmentEntity> = {
+        const savedAssignment = await this.assignmentRepository.create({
           tenantCode,
           employeeId: savedEmployee.id,
           companyId: dto.companyId,
@@ -116,8 +108,7 @@ export class EmployeeService {
           managerEmployeeId: dto.managerId ?? null,
           effectiveFrom: effectiveFromDate,
           effectiveTo: null,
-        };
-        const savedAssignment = await this.assignmentRepository.createAndSave(assignmentToCreate);
+        });
 
         // 4.4 Persist Outbox Event
         const eventPayload = {
@@ -139,7 +130,7 @@ export class EmployeeService {
             : new Date().toISOString(),
         };
 
-        await this.outboxRepository.createAndSave({
+        await this.outboxRepository.create({
           tenantCode,
           aggregateType: 'EMPLOYEE',
           aggregateId: savedEmployee.id,

@@ -37,6 +37,6 @@ export class EmployeeController {
     description: 'Duplicate employee code or projection not ready',
   })
   async create(@Body() dto: CreateEmployeeDto): Promise<EmployeeResponseDto> {
-    return this.employeeService.createEmployee(dto);
+    return this.employeeService.create(dto);
   }
 }

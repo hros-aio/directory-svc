@@ -12,9 +12,8 @@ export class ManagerValidator {
 
   async validateManager(
     managerId: string,
-    tenantCode: string,
   ): Promise<{ manager: EmployeeEntity; resolved: ResolvedManagerDto }> {
-    const manager = await this.employeeRepository.findByIdAndTenant(managerId, tenantCode);
+    const manager = await this.employeeRepository.findById(managerId);
     if (!manager) {
       throw new BusinessException(
         `Manager with ID '${managerId}' not found in current tenant`,

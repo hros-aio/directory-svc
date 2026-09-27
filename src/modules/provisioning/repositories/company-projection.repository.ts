@@ -7,12 +7,6 @@ export class CompanyProjectionRepository extends BaseRepository<Company> {
     super(Company, transactionService);
   }
 
-  async findByIdAndTenant(id: string, tenantCode: string): Promise<Company | null> {
-    return this.repository.findOne({
-      where: { id, tenantCode },
-    });
-  }
-
   async upsertProjection(data: Company): Promise<Company> {
     const existing = await this.findById(data.id);
 
