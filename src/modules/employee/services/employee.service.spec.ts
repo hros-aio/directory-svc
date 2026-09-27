@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { LoggerService } from '@new-hros/libs-core';
+import { AuthContext, LoggerService, RequestContextService } from '@new-hros/libs-core';
 import { TransactionService } from '@new-hros/libs-sql';
 
 import { EmployeeService } from './employee.service';
@@ -49,9 +49,21 @@ describe('EmployeeService', () => {
   };
 
   beforeEach(async () => {
+    jest.spyOn(RequestContextService, 'getTenantCode').mockReturnValue(tenantCode);
+    jest.spyOn(RequestContextService, 'getUser').mockReturnValue({
+      userId,
+      tenantCode,
+      sessionId: 'session-1',
+      roles: [],
+      scopes: [],
+      permissions: [],
+    } as AuthContext);
+    jest.spyOn(RequestContextService, 'getTraceId').mockReturnValue('trace-123');
+    jest.spyOn(RequestContextService, 'getRequestId').mockReturnValue('req-123');
+
     employeeRepo = {
       findByCode: jest.fn(),
-      findByIdAndTenant: jest.fn(),
+      findById: jest.fn(),
       createAndSave: jest.fn(),
     } as unknown as jest.Mocked<EmployeeRepository>;
 
@@ -172,11 +184,7 @@ describe('EmployeeService', () => {
       status: OutboxStatus.PENDING,
     } as unknown as OutboxEventEntity);
 
-    const response = await service.createEmployee(validDto, {
-      tenantCode,
-      userId,
-      traceId: 'trace-123',
-    });
+    const response = await service.create(validDto);
 
     expect(response.id).toBe('emp-uuid-1');
     expect(response.employeeCode).toBe('EMP-00101');
@@ -203,7 +211,7 @@ describe('EmployeeService', () => {
       employeeCode: 'EMP-00101',
     } as unknown as EmployeeEntity);
 
-    await expect(service.createEmployee(validDto, { tenantCode, userId })).rejects.toMatchObject({
+    await expect(service.create(validDto)).rejects.toMatchObject({
       code: 'DUPLICATE_EMPLOYEE_CODE',
       status: 409,
     });

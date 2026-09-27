@@ -29,7 +29,6 @@ describe('EmployeeReferenceValidator', () => {
   let gradeRepo: jest.Mocked<GradeProjectionRepository>;
   let jobTitleRepo: jest.Mocked<JobTitleProjectionRepository>;
 
-  const tenantCode = 'tenant-test-1';
   const validDto: CreateEmployeeDto = {
     employeeCode: 'EMP-001',
     firstName: 'Jane',
@@ -44,23 +43,23 @@ describe('EmployeeReferenceValidator', () => {
 
   beforeEach(async () => {
     companyRepo = {
-      findByIdAndTenant: jest.fn(),
+      findById: jest.fn(),
     } as unknown as jest.Mocked<CompanyProjectionRepository>;
 
     deptRepo = {
-      findByIdAndTenant: jest.fn(),
+      findById: jest.fn(),
     } as unknown as jest.Mocked<DepartmentProjectionRepository>;
 
     locRepo = {
-      findByIdAndTenant: jest.fn(),
+      findById: jest.fn(),
     } as unknown as jest.Mocked<LocationProjectionRepository>;
 
     gradeRepo = {
-      findByIdAndTenant: jest.fn(),
+      findById: jest.fn(),
     } as unknown as jest.Mocked<GradeProjectionRepository>;
 
     jobTitleRepo = {
-      findByIdAndTenant: jest.fn(),
+      findById: jest.fn(),
     } as unknown as jest.Mocked<JobTitleProjectionRepository>;
 
     const module: TestingModule = await Test.createTestingModule({
@@ -78,7 +77,7 @@ describe('EmployeeReferenceValidator', () => {
   });
 
   it('should successfully validate all valid references', async () => {
-    companyRepo.findByIdAndTenant.mockResolvedValue({
+    companyRepo.findById.mockResolvedValue({
       id: 'company-uuid-1',
       companyCode: 'CORP',
       legalName: 'Corp Legal',
@@ -86,7 +85,7 @@ describe('EmployeeReferenceValidator', () => {
       status: CompanyStatus.ACTIVE,
     } as unknown as Company);
 
-    deptRepo.findByIdAndTenant.mockResolvedValue({
+    deptRepo.findById.mockResolvedValue({
       id: 'dept-uuid-1',
       code: 'ENG',
       name: 'Engineering',
@@ -94,7 +93,7 @@ describe('EmployeeReferenceValidator', () => {
       status: MasterDataStatus.ACTIVE,
     } as unknown as Department);
 
-    locRepo.findByIdAndTenant.mockResolvedValue({
+    locRepo.findById.mockResolvedValue({
       id: 'loc-uuid-1',
       code: 'HQ',
       name: 'Singapore HQ',
@@ -102,21 +101,21 @@ describe('EmployeeReferenceValidator', () => {
       status: MasterDataStatus.ACTIVE,
     } as unknown as Location);
 
-    gradeRepo.findByIdAndTenant.mockResolvedValue({
+    gradeRepo.findById.mockResolvedValue({
       id: 'grade-uuid-1',
       code: 'L5',
       name: 'Senior IC',
       status: MasterDataStatus.ACTIVE,
     } as unknown as Grade);
 
-    jobTitleRepo.findByIdAndTenant.mockResolvedValue({
+    jobTitleRepo.findById.mockResolvedValue({
       id: 'job-uuid-1',
       code: 'SWE',
       name: 'Software Engineer',
       status: MasterDataStatus.ACTIVE,
     } as unknown as JobTitle);
 
-    const result = await validator.validateAndResolve(validDto, tenantCode);
+    const result = await validator.validateAndResolve(validDto);
 
     expect(result.company).toEqual({
       id: 'company-uuid-1',
@@ -146,74 +145,72 @@ describe('EmployeeReferenceValidator', () => {
   });
 
   it('should throw COMPANY_NOT_FOUND if company is missing or inactive', async () => {
-    companyRepo.findByIdAndTenant.mockResolvedValue(null);
+    companyRepo.findById.mockResolvedValue(null);
 
-    await expect(validator.validateAndResolve(validDto, tenantCode)).rejects.toThrow(
-      BusinessException,
-    );
+    await expect(validator.validateAndResolve(validDto)).rejects.toThrow(BusinessException);
 
-    companyRepo.findByIdAndTenant.mockResolvedValue({
+    companyRepo.findById.mockResolvedValue({
       id: 'company-uuid-1',
       status: CompanyStatus.PENDING,
     } as unknown as Company);
 
-    await expect(validator.validateAndResolve(validDto, tenantCode)).rejects.toMatchObject({
+    await expect(validator.validateAndResolve(validDto)).rejects.toMatchObject({
       code: 'COMPANY_NOT_FOUND',
       status: 404,
     });
   });
 
   it('should throw DEPARTMENT_NOT_FOUND if department does not exist', async () => {
-    companyRepo.findByIdAndTenant.mockResolvedValue({
+    companyRepo.findById.mockResolvedValue({
       id: 'company-uuid-1',
       companyCode: 'CORP',
       legalName: 'Corp',
       status: CompanyStatus.ACTIVE,
     } as unknown as Company);
-    deptRepo.findByIdAndTenant.mockResolvedValue(null);
+    deptRepo.findById.mockResolvedValue(null);
 
-    await expect(validator.validateAndResolve(validDto, tenantCode)).rejects.toMatchObject({
+    await expect(validator.validateAndResolve(validDto)).rejects.toMatchObject({
       code: 'DEPARTMENT_NOT_FOUND',
       status: 404,
     });
   });
 
   it('should throw INVALID_ORGANIZATION_ASSIGNMENT if department belongs to another company', async () => {
-    companyRepo.findByIdAndTenant.mockResolvedValue({
+    companyRepo.findById.mockResolvedValue({
       id: 'company-uuid-1',
       companyCode: 'CORP',
       legalName: 'Corp',
       status: CompanyStatus.ACTIVE,
     } as unknown as Company);
-    deptRepo.findByIdAndTenant.mockResolvedValue({
+    deptRepo.findById.mockResolvedValue({
       id: 'dept-uuid-1',
       companyId: 'different-company-uuid',
       status: MasterDataStatus.ACTIVE,
     } as unknown as Department);
 
-    await expect(validator.validateAndResolve(validDto, tenantCode)).rejects.toMatchObject({
+    await expect(validator.validateAndResolve(validDto)).rejects.toMatchObject({
       code: 'INVALID_ORGANIZATION_ASSIGNMENT',
       status: 400,
     });
   });
 
   it('should throw INVALID_ORGANIZATION_ASSIGNMENT if location belongs to another company', async () => {
-    companyRepo.findByIdAndTenant.mockResolvedValue({
+    companyRepo.findById.mockResolvedValue({
       id: 'company-uuid-1',
       companyCode: 'CORP',
       legalName: 'Corp',
       status: CompanyStatus.ACTIVE,
     } as unknown as Company);
-    deptRepo.findByIdAndTenant.mockResolvedValue(null);
+    deptRepo.findById.mockResolvedValue(null);
     const dtoNoDept = { ...validDto, departmentId: undefined };
 
-    locRepo.findByIdAndTenant.mockResolvedValue({
+    locRepo.findById.mockResolvedValue({
       id: 'loc-uuid-1',
       companyId: 'different-company-uuid',
       status: MasterDataStatus.ACTIVE,
     } as unknown as Location);
 
-    await expect(validator.validateAndResolve(dtoNoDept, tenantCode)).rejects.toMatchObject({
+    await expect(validator.validateAndResolve(dtoNoDept)).rejects.toMatchObject({
       code: 'INVALID_ORGANIZATION_ASSIGNMENT',
       status: 400,
     });

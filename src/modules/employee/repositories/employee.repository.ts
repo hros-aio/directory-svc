@@ -9,17 +9,8 @@ export class EmployeeRepository extends BaseRepository<EmployeeEntity> {
     super(EmployeeEntity, transactionService);
   }
 
-  async findByCode(tenantCode: string, employeeCode: string): Promise<EmployeeEntity | null> {
-    return this.repository.findOne({
-      where: { tenantCode, employeeCode },
-    });
-  }
-
-  async findByIdAndTenant(id: string, tenantCode: string): Promise<EmployeeEntity | null> {
-    return this.repository.findOne({
-      where: { id, tenantCode },
-      relations: ['profile'],
-    });
+  async findByCode(employeeCode: string): Promise<EmployeeEntity | null> {
+    return this.findOne({ employeeCode });
   }
 
   async createAndSave(data: Partial<EmployeeEntity>): Promise<EmployeeEntity> {
