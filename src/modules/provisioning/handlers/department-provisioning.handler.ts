@@ -16,8 +16,8 @@ export class DepartmentProvisioningHandler {
 
   @EventPattern(SettingEventType.DepartmentCreated)
   async handleCreated(@Payload() envelope: EventEnvelope<DepartmentPayload>): Promise<void> {
-    const payload = envelope.payload;
-    if (!payload || !payload.tenantCode) {
+    const { eventId, tenantCode, traceId, payload } = envelope;
+    if (!payload || !tenantCode) {
       this.logger.warn(
         `Received ${SettingEventType.DepartmentCreated} event without payload or tenantCode: ${JSON.stringify(
           envelope,
@@ -26,11 +26,8 @@ export class DepartmentProvisioningHandler {
       return;
     }
 
-    const eventId = envelope.eventId;
-    const tenantCode = payload.tenantCode;
-
     const context: RequestContext = {
-      traceId: envelope.correlationId || eventId,
+      traceId: traceId || eventId,
       requestId: eventId,
       tenantCode,
       clientMetadata: {
@@ -56,8 +53,8 @@ export class DepartmentProvisioningHandler {
 
   @EventPattern(SettingEventType.DepartmentUpdated)
   async handleUpdate(@Payload() envelope: EventEnvelope<DepartmentPayload>): Promise<void> {
-    const payload = envelope.payload;
-    if (!payload || !payload.tenantCode) {
+    const { eventId, tenantCode, traceId, payload } = envelope;
+    if (!payload || !tenantCode) {
       this.logger.warn(
         `Received ${SettingEventType.DepartmentUpdated} event without payload or tenantCode: ${JSON.stringify(
           envelope,
@@ -66,11 +63,8 @@ export class DepartmentProvisioningHandler {
       return;
     }
 
-    const eventId = envelope.eventId;
-    const tenantCode = payload.tenantCode;
-
     const context: RequestContext = {
-      traceId: envelope.correlationId || eventId,
+      traceId: traceId || eventId,
       requestId: eventId,
       tenantCode,
       clientMetadata: {
@@ -96,8 +90,8 @@ export class DepartmentProvisioningHandler {
 
   @EventPattern(SettingEventType.DepartmentDeactivated)
   async handleDeactivate(@Payload() envelope: EventEnvelope<DepartmentPayload>): Promise<void> {
-    const payload = envelope.payload;
-    if (!payload || !payload.tenantCode) {
+    const { eventId, tenantCode, traceId, payload } = envelope;
+    if (!payload || !tenantCode) {
       this.logger.warn(
         `Received ${SettingEventType.DepartmentDeactivated} event without payload or tenantCode: ${JSON.stringify(
           envelope,
@@ -106,11 +100,8 @@ export class DepartmentProvisioningHandler {
       return;
     }
 
-    const eventId = envelope.eventId;
-    const tenantCode = payload.tenantCode;
-
     const context: RequestContext = {
-      traceId: envelope.correlationId || eventId,
+      traceId: traceId || eventId,
       requestId: eventId,
       tenantCode,
       clientMetadata: {
