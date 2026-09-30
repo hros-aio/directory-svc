@@ -16,8 +16,8 @@ export class LocationProvisioningHandler {
 
   @EventPattern(SettingEventType.LocationCreated)
   async handleCreated(@Payload() envelope: EventEnvelope<LocationPayload>): Promise<void> {
-    const payload = envelope.payload;
-    if (!payload || !payload.tenantCode) {
+    const { eventId, tenantCode, traceId, payload } = envelope;
+    if (!payload || !tenantCode) {
       this.logger.warn(
         `Received ${SettingEventType.LocationCreated} event without payload or tenantCode: ${JSON.stringify(
           envelope,
@@ -26,11 +26,8 @@ export class LocationProvisioningHandler {
       return;
     }
 
-    const eventId = envelope.eventId;
-    const tenantCode = payload.tenantCode;
-
     const context: RequestContext = {
-      traceId: envelope.correlationId || eventId,
+      traceId: traceId || eventId,
       requestId: eventId,
       tenantCode,
       clientMetadata: {
@@ -56,8 +53,8 @@ export class LocationProvisioningHandler {
 
   @EventPattern(SettingEventType.LocationUpdated)
   async handleUpdate(@Payload() envelope: EventEnvelope<LocationPayload>): Promise<void> {
-    const payload = envelope.payload;
-    if (!payload || !payload.tenantCode) {
+    const { eventId, tenantCode, traceId, payload } = envelope;
+    if (!payload || !tenantCode) {
       this.logger.warn(
         `Received ${SettingEventType.LocationUpdated} event without payload or tenantCode: ${JSON.stringify(
           envelope,
@@ -66,11 +63,8 @@ export class LocationProvisioningHandler {
       return;
     }
 
-    const eventId = envelope.eventId;
-    const tenantCode = payload.tenantCode;
-
     const context: RequestContext = {
-      traceId: envelope.correlationId || eventId,
+      traceId: traceId || eventId,
       requestId: eventId,
       tenantCode,
       clientMetadata: {
@@ -96,8 +90,8 @@ export class LocationProvisioningHandler {
 
   @EventPattern(SettingEventType.LocationDeactivated)
   async handleDeactivate(@Payload() envelope: EventEnvelope<LocationPayload>): Promise<void> {
-    const payload = envelope.payload;
-    if (!payload || !payload.tenantCode) {
+    const { eventId, tenantCode, traceId, payload } = envelope;
+    if (!payload || !tenantCode) {
       this.logger.warn(
         `Received ${SettingEventType.LocationDeactivated} event without payload or tenantCode: ${JSON.stringify(
           envelope,
@@ -106,11 +100,8 @@ export class LocationProvisioningHandler {
       return;
     }
 
-    const eventId = envelope.eventId;
-    const tenantCode = payload.tenantCode;
-
     const context: RequestContext = {
-      traceId: envelope.correlationId || eventId,
+      traceId: traceId || eventId,
       requestId: eventId,
       tenantCode,
       clientMetadata: {

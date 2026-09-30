@@ -11,7 +11,7 @@ import {
 } from '../../../common/enums';
 import { EmploymentAssignmentEntity } from '../../employment/entities/employment-assignment.entity';
 import { EmploymentAssignmentRepository } from '../../employment/repositories/employment-assignment.repository';
-import { OutboxRepository } from '../../outbox/repositories/outbox.repository';
+import { OutboxService } from '../../outbox/services/outbox.service';
 import { CreateEmployeeDto } from '../dto/create-employee.dto';
 import { EmployeeProfileEntity } from '../entities/employee-profile.entity';
 import { EmployeeEntity } from '../entities/employee.entity';
@@ -25,7 +25,7 @@ describe('EmployeeService', () => {
   let employeeRepo: jest.Mocked<EmployeeRepository>;
   let profileRepo: jest.Mocked<EmployeeProfileRepository>;
   let assignmentRepo: jest.Mocked<EmploymentAssignmentRepository>;
-  let outboxRepo: jest.Mocked<OutboxRepository>;
+  let outboxService: jest.Mocked<OutboxService>;
   let referenceValidator: jest.Mocked<EmployeeReferenceValidator>;
   let managerValidator: jest.Mocked<ManagerValidator>;
   let transactionService: jest.Mocked<TransactionService>;
@@ -74,9 +74,9 @@ describe('EmployeeService', () => {
       create: jest.fn(),
     } as unknown as jest.Mocked<EmploymentAssignmentRepository>;
 
-    outboxRepo = {
-      create: jest.fn(),
-    } as unknown as jest.Mocked<OutboxRepository>;
+    outboxService = {
+      fromEmployeeCreated: jest.fn(),
+    } as unknown as jest.Mocked<OutboxService>;
 
     referenceValidator = {
       validateAndResolve: jest.fn(),
@@ -104,7 +104,7 @@ describe('EmployeeService', () => {
         { provide: EmployeeRepository, useValue: employeeRepo },
         { provide: EmployeeProfileRepository, useValue: profileRepo },
         { provide: EmploymentAssignmentRepository, useValue: assignmentRepo },
-        { provide: OutboxRepository, useValue: outboxRepo },
+        { provide: OutboxService, useValue: outboxService },
         { provide: EmployeeReferenceValidator, useValue: referenceValidator },
         { provide: ManagerValidator, useValue: managerValidator },
         { provide: TransactionService, useValue: transactionService },
@@ -178,7 +178,7 @@ describe('EmployeeService', () => {
     } as unknown as EmploymentAssignmentEntity;
     assignmentRepo.create.mockResolvedValue(mockSavedAssignment);
 
-    outboxRepo.create.mockResolvedValue({
+    outboxService.fromEmployeeCreated.mockResolvedValue({
       id: 'outbox-uuid-1',
       status: OutboxStatus.PENDING,
     } as unknown as OutboxEventEntity);
@@ -190,12 +190,9 @@ describe('EmployeeService', () => {
     expect(response.profile.fullName).toBe('Jane Doe');
     expect(response.currentAssignment.company.name).toBe('Acme Corp');
     expect(response.currentAssignment.manager?.fullName).toBe('Alice Smith');
-    expect(outboxRepo.create).toHaveBeenCalledWith(
-      expect.objectContaining({
-        eventType: 'directory.employee.created',
-        tenantCode,
-        status: OutboxStatus.PENDING,
-      }),
+    expect(outboxService.fromEmployeeCreated).toHaveBeenCalledWith(
+      mockSavedEmployee,
+      mockSavedAssignment,
     );
     expect(loggerService.audit).toHaveBeenCalledWith(
       'EMPLOYEE_CREATED',

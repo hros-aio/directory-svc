@@ -15,8 +15,8 @@ export class CompanyProvisioningHandler {
 
   @EventPattern(SettingEventType.CompanyCreated)
   async handleCreated(@Payload() envelope: EventEnvelope<CompanyPayload>): Promise<void> {
-    const payload = envelope.payload;
-    if (!payload || !payload.tenantCode) {
+    const { eventId, tenantCode, traceId, payload } = envelope;
+    if (!payload || !tenantCode) {
       this.logger.warn(
         `Received ${SettingEventType.CompanyCreated} event without payload or tenantCode: ${JSON.stringify(
           envelope,
@@ -25,11 +25,8 @@ export class CompanyProvisioningHandler {
       return;
     }
 
-    const eventId = envelope.eventId;
-    const tenantCode = payload.tenantCode;
-
     const context: RequestContext = {
-      traceId: envelope.correlationId || eventId,
+      traceId: traceId || eventId,
       requestId: eventId,
       tenantCode,
       clientMetadata: {
@@ -55,8 +52,8 @@ export class CompanyProvisioningHandler {
 
   @EventPattern(SettingEventType.CompanyUpdated)
   async handleUpdate(@Payload() envelope: EventEnvelope<CompanyPayload>): Promise<void> {
-    const payload = envelope.payload;
-    if (!payload || !payload.tenantCode) {
+    const { eventId, tenantCode, traceId, payload } = envelope;
+    if (!payload || !tenantCode) {
       this.logger.warn(
         `Received ${SettingEventType.CompanyUpdated} event without payload or tenantCode: ${JSON.stringify(
           envelope,
@@ -65,11 +62,8 @@ export class CompanyProvisioningHandler {
       return;
     }
 
-    const eventId = envelope.eventId;
-    const tenantCode = payload.tenantCode;
-
     const context: RequestContext = {
-      traceId: envelope.correlationId || eventId,
+      traceId: traceId || eventId,
       requestId: eventId,
       tenantCode,
       clientMetadata: {
@@ -95,8 +89,8 @@ export class CompanyProvisioningHandler {
 
   @EventPattern(SettingEventType.CompanyActivated)
   async handleActivate(@Payload() envelope: EventEnvelope<CompanyPayload>): Promise<void> {
-    const payload = envelope.payload;
-    if (!payload || !payload.tenantCode) {
+    const { eventId, tenantCode, traceId, payload } = envelope;
+    if (!payload || !tenantCode) {
       this.logger.warn(
         `Received ${SettingEventType.CompanyActivated} event without payload or tenantCode: ${JSON.stringify(
           envelope,
@@ -105,11 +99,8 @@ export class CompanyProvisioningHandler {
       return;
     }
 
-    const eventId = envelope.eventId;
-    const tenantCode = payload.tenantCode;
-
     const context: RequestContext = {
-      traceId: envelope.correlationId || eventId,
+      traceId: traceId || eventId,
       requestId: eventId,
       tenantCode,
       clientMetadata: {

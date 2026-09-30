@@ -2,9 +2,9 @@ import { Injectable, Logger, Optional } from '@nestjs/common';
 import { BusinessException, LoggerService, RequestContextService } from '@new-hros/libs-core';
 import { TransactionService } from '@new-hros/libs-sql';
 
-import { EmployeeStatus, EmploymentStatus, OutboxStatus } from '../../../common/enums';
+import { EmployeeStatus, EmploymentStatus } from '../../../common/enums';
 import { EmploymentAssignmentRepository } from '../../employment/repositories/employment-assignment.repository';
-import { OutboxRepository } from '../../outbox/repositories/outbox.repository';
+import { OutboxService } from '../../outbox/services/outbox.service';
 import { CreateEmployeeDto } from '../dto/create-employee.dto';
 import { EmployeeResponseDto, ResolvedManagerDto } from '../dto/employee-response.dto';
 import { EmployeeProfileRepository } from '../repositories/employee-profile.repository';
@@ -27,7 +27,7 @@ export class EmployeeService {
     private readonly employeeRepository: EmployeeRepository,
     private readonly profileRepository: EmployeeProfileRepository,
     private readonly assignmentRepository: EmploymentAssignmentRepository,
-    private readonly outboxRepository: OutboxRepository,
+    private readonly outboxService: OutboxService,
     private readonly referenceValidator: EmployeeReferenceValidator,
     private readonly managerValidator: ManagerValidator,
     private readonly transactionService: TransactionService,
@@ -111,34 +111,7 @@ export class EmployeeService {
         });
 
         // 4.4 Persist Outbox Event
-        const eventPayload = {
-          employeeId: savedEmployee.id,
-          tenantCode,
-          employeeCode: savedEmployee.employeeCode,
-          status: savedEmployee.status,
-          employmentType: savedEmployee.employmentType,
-          employmentStatus: savedEmployee.employmentStatus,
-          companyId: savedAssignment.companyId,
-          locationId: savedAssignment.locationId,
-          departmentId: savedAssignment.departmentId,
-          gradeId: savedAssignment.gradeId,
-          jobTitleId: savedAssignment.jobTitleId,
-          managerId: savedAssignment.managerEmployeeId,
-          joinedAt: savedEmployee.joinedAt ? savedEmployee.joinedAt.toISOString() : null,
-          createdAt: savedEmployee.createdAt
-            ? savedEmployee.createdAt.toISOString()
-            : new Date().toISOString(),
-        };
-
-        await this.outboxRepository.create({
-          tenantCode,
-          aggregateType: 'EMPLOYEE',
-          aggregateId: savedEmployee.id,
-          eventType: 'directory.employee.created',
-          eventVersion: 1,
-          payload: eventPayload,
-          status: OutboxStatus.PENDING,
-        });
+        await this.outboxService.fromEmployeeCreated(savedEmployee, savedAssignment);
 
         return {
           employee: savedEmployee,
