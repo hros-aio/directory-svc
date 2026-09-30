@@ -22,11 +22,12 @@ describe('CompanyProvisioningHandler', () => {
 
   it('should process company.created event successfully', async () => {
     const envelope: EventEnvelope<CompanyPayload> = {
-      id: 'evt-1',
-      topic: 'setting.company.created',
+      eventId: 'evt-1',
+      eventType: 'setting.company.created',
+      eventVersion: 1,
+      tenantCode: 'tenant-1',
+      occurredAt: new Date().toISOString(),
       producer: 'setting-service',
-      timestamp: new Date().toISOString(),
-      version: '1',
       correlationId: 'corr-1',
       payload: {
         id: 'comp-1',
@@ -45,11 +46,12 @@ describe('CompanyProvisioningHandler', () => {
 
   it('should process company.activated event', async () => {
     const envelope: EventEnvelope<CompanyPayload> = {
-      id: 'evt-2',
-      topic: 'setting.company.activated',
+      eventId: 'evt-2',
+      eventType: 'setting.company.activated',
+      eventVersion: 2,
+      tenantCode: 'tenant-1',
+      occurredAt: new Date().toISOString(),
       producer: 'setting-service',
-      timestamp: new Date().toISOString(),
-      version: '2',
       correlationId: 'corr-2',
       payload: {
         id: 'comp-1',
@@ -77,11 +79,12 @@ describe('CompanyProvisioningHandler', () => {
     } as unknown as Company);
 
     const envelope: EventEnvelope<CompanyPayload> = {
-      id: 'evt-stale',
-      topic: 'setting.company.updated',
+      eventId: 'evt-stale',
+      eventType: 'setting.company.updated',
+      eventVersion: 3,
+      tenantCode: 'tenant-1',
+      occurredAt: new Date().toISOString(),
       producer: 'setting-service',
-      timestamp: new Date().toISOString(),
-      version: '3',
       correlationId: 'corr-3',
       payload: {
         id: 'comp-1',

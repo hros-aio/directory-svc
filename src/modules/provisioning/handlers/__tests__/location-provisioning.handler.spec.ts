@@ -22,11 +22,12 @@ describe('LocationProvisioningHandler', () => {
 
   it('should process location.created event', async () => {
     const envelope: EventEnvelope<LocationPayload> = {
-      id: 'evt-loc-1',
-      topic: 'setting.location.created',
+      eventId: 'evt-loc-1',
+      eventType: 'setting.location.created',
+      eventVersion: 1,
+      tenantCode: 'tenant-1',
+      occurredAt: new Date().toISOString(),
       producer: 'setting-service',
-      timestamp: new Date().toISOString(),
-      version: '1',
       correlationId: 'corr-1',
       payload: {
         id: 'loc-1',
@@ -45,11 +46,12 @@ describe('LocationProvisioningHandler', () => {
 
   it('should process location.deactivated event', async () => {
     const envelope: EventEnvelope<LocationPayload> = {
-      id: 'evt-loc-2',
-      topic: 'setting.location.deactivated',
+      eventId: 'evt-loc-2',
+      eventType: 'setting.location.deactivated',
+      eventVersion: 2,
+      tenantCode: 'tenant-1',
+      occurredAt: new Date().toISOString(),
       producer: 'setting-service',
-      timestamp: new Date().toISOString(),
-      version: '2',
       correlationId: 'corr-2',
       payload: {
         id: 'loc-1',

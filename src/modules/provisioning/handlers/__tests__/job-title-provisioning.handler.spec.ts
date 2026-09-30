@@ -22,11 +22,12 @@ describe('JobTitleProvisioningHandler', () => {
 
   it('should process job_title.created event', async () => {
     const envelope: EventEnvelope<JobTitlePayload> = {
-      id: 'evt-jt-1',
-      topic: 'setting.job_title.created',
+      eventId: 'evt-jt-1',
+      eventType: 'setting.job_title.created',
+      eventVersion: 1,
+      tenantCode: 'tenant-1',
+      occurredAt: new Date().toISOString(),
       producer: 'setting-service',
-      timestamp: new Date().toISOString(),
-      version: '1',
       correlationId: 'corr-1',
       payload: {
         id: 'jt-1',
@@ -44,11 +45,12 @@ describe('JobTitleProvisioningHandler', () => {
 
   it('should process job_title.deactivated event', async () => {
     const envelope: EventEnvelope<JobTitlePayload> = {
-      id: 'evt-jt-2',
-      topic: 'setting.job_title.deactivated',
+      eventId: 'evt-jt-2',
+      eventType: 'setting.job_title.deactivated',
+      eventVersion: 2,
+      tenantCode: 'tenant-1',
+      occurredAt: new Date().toISOString(),
       producer: 'setting-service',
-      timestamp: new Date().toISOString(),
-      version: '2',
       correlationId: 'corr-2',
       payload: {
         id: 'jt-1',

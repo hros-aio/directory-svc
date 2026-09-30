@@ -22,11 +22,12 @@ describe('DepartmentProvisioningHandler', () => {
 
   it('should process department.created event', async () => {
     const envelope: EventEnvelope<DepartmentPayload> = {
-      id: 'evt-dept-1',
-      topic: 'setting.department.created',
+      eventId: 'evt-dept-1',
+      eventType: 'setting.department.created',
+      eventVersion: 1,
+      tenantCode: 'tenant-1',
+      occurredAt: new Date().toISOString(),
       producer: 'setting-service',
-      timestamp: new Date().toISOString(),
-      version: '1',
       correlationId: 'corr-1',
       payload: {
         id: 'dept-1',
@@ -45,11 +46,12 @@ describe('DepartmentProvisioningHandler', () => {
 
   it('should process department.deactivated event', async () => {
     const envelope: EventEnvelope<DepartmentPayload> = {
-      id: 'evt-dept-2',
-      topic: 'setting.department.deactivated',
+      eventId: 'evt-dept-2',
+      eventType: 'setting.department.deactivated',
+      eventVersion: 2,
+      tenantCode: 'tenant-1',
+      occurredAt: new Date().toISOString(),
       producer: 'setting-service',
-      timestamp: new Date().toISOString(),
-      version: '2',
       correlationId: 'corr-2',
       payload: {
         id: 'dept-1',

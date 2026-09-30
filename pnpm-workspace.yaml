@@ -3,3 +3,4 @@ allowBuilds:
 minimumReleaseAgeExclude:
   - '@new-hros/libs-apis@1.2.2'
   - '@new-hros/libs-core@1.3.2'
+  - '@new-hros/libs-events@1.2.1'
