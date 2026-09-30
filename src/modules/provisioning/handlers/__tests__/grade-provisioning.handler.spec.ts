@@ -22,11 +22,12 @@ describe('GradeProvisioningHandler', () => {
 
   it('should process grade.created event', async () => {
     const envelope: EventEnvelope<GradePayload> = {
-      id: 'evt-grd-1',
-      topic: 'setting.grade.created',
+      eventId: 'evt-grd-1',
+      eventType: 'setting.grade.created',
+      eventVersion: 1,
+      tenantCode: 'tenant-1',
+      occurredAt: new Date().toISOString(),
       producer: 'setting-service',
-      timestamp: new Date().toISOString(),
-      version: '1',
       correlationId: 'corr-1',
       payload: {
         id: 'grd-1',
@@ -44,11 +45,12 @@ describe('GradeProvisioningHandler', () => {
 
   it('should process grade.deactivated event', async () => {
     const envelope: EventEnvelope<GradePayload> = {
-      id: 'evt-grd-2',
-      topic: 'setting.grade.deactivated',
+      eventId: 'evt-grd-2',
+      eventType: 'setting.grade.deactivated',
+      eventVersion: 2,
+      tenantCode: 'tenant-1',
+      occurredAt: new Date().toISOString(),
       producer: 'setting-service',
-      timestamp: new Date().toISOString(),
-      version: '2',
       correlationId: 'corr-2',
       payload: {
         id: 'grd-1',

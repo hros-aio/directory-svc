@@ -1,7 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { BaseRepository, TransactionService } from '@new-hros/libs-sql';
-
-import { OutboxEventEntity } from '../entities/outbox-event.entity';
+import { BaseRepository, OutboxEventEntity, TransactionService } from '@new-hros/libs-sql';
 
 @Injectable()
 export class OutboxRepository extends BaseRepository<OutboxEventEntity> {

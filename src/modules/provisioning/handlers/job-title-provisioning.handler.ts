@@ -26,7 +26,7 @@ export class JobTitleProvisioningHandler {
       return;
     }
 
-    const eventId = envelope.id;
+    const eventId = envelope.eventId;
     const tenantCode = payload.tenantCode;
 
     const context: RequestContext = {
@@ -66,7 +66,7 @@ export class JobTitleProvisioningHandler {
       return;
     }
 
-    const eventId = envelope.id;
+    const eventId = envelope.eventId;
     const tenantCode = payload.tenantCode;
 
     const context: RequestContext = {
@@ -106,7 +106,7 @@ export class JobTitleProvisioningHandler {
       return;
     }
 
-    const eventId = envelope.id;
+    const eventId = envelope.eventId;
     const tenantCode = payload.tenantCode;
 
     const context: RequestContext = {

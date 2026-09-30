@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthContext, LoggerService, RequestContextService } from '@new-hros/libs-core';
-import { TransactionService } from '@new-hros/libs-sql';
+import { OutboxEventEntity, TransactionService } from '@new-hros/libs-sql';
 
 import { EmployeeService } from './employee.service';
 import {
@@ -11,7 +11,6 @@ import {
 } from '../../../common/enums';
 import { EmploymentAssignmentEntity } from '../../employment/entities/employment-assignment.entity';
 import { EmploymentAssignmentRepository } from '../../employment/repositories/employment-assignment.repository';
-import { OutboxEventEntity } from '../../outbox/entities/outbox-event.entity';
 import { OutboxRepository } from '../../outbox/repositories/outbox.repository';
 import { CreateEmployeeDto } from '../dto/create-employee.dto';
 import { EmployeeProfileEntity } from '../entities/employee-profile.entity';
