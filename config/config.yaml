@@ -17,6 +17,9 @@ redis:
 kafka:
   brokers:
     - 'localhost:9092'
+  clientId: 'directory-service'
+  groupId: 'directory-service-group'
+  enableConsumer: false
 
 jwt:
   publicKey: 'test-public-key'

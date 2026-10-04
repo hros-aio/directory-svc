@@ -47,18 +47,21 @@ async function bootstrap(): Promise<void> {
   app.enableShutdownHooks();
 
   // Configure Kafka Microservice
-  const brokers = configService.get<string[]>('kafka.brokers') ?? ['localhost:9092'];
-  await setupKafkaMicroservice(app, {
-    client: {
-      brokers,
-      clientId: 'hrms-directory-service-client',
-    },
-    consumer: {
-      groupId: 'hrms-directory-service-group',
-    },
-    failedCount: 3,
-    retryDelayMs: 1000,
-  });
+  const enableConsumer = configService.get<boolean>('kafka.enableConsumer');
+  if (enableConsumer) {
+    const brokers = configService.get<string[]>('kafka.brokers') ?? ['localhost:9092'];
+    await setupKafkaMicroservice(app, {
+      client: {
+        brokers,
+        clientId: configService.get<string>('kafka.clientId') ?? 'directory-service',
+      },
+      consumer: {
+        groupId: configService.get<string>('kafka.groupId') ?? 'directory-service-group',
+      },
+      failedCount: 3,
+      retryDelayMs: 1000,
+    });
+  }
 
   await app.listen(port);
   logger.log(`Application is running on: http://localhost:${port}/docs`);
