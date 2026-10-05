@@ -6,7 +6,9 @@ export * from './employment-contract-status.enum';
 export * from './employment-contract-type.enum';
 export * from './employment-status.enum';
 export * from './employment-type.enum';
+export * from './import-row-error-mode.enum';
 export * from './onboarding-requirement-status.enum';
+
 export * from './onboarding-requirement-type.enum';
 export * from './onboarding-status.enum';
 export * from './outbox-status.enum';

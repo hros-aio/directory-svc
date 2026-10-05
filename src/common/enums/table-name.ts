@@ -19,4 +19,8 @@ export enum TableName {
 
   // Outbox
   OutboxEvent = 'outbox_events',
+
+  // Employee Import
+  EmployeeImportProfile = 'employee_import_profiles',
+  EmployeeImportJob = 'employee_import_jobs',
 }
