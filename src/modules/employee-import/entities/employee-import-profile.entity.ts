@@ -7,11 +7,8 @@ import type { ImportJobConfig } from '../../../common/interfaces';
 @Entity(TableName.EmployeeImportProfile)
 @Index('idx_import_profiles_tenant_company_active', ['tenantCode', 'companyId', 'isActive'])
 export class EmployeeImportProfileEntity extends BaseEntity {
-  @Column({ name: 'tenant_code', type: 'varchar', length: 64, nullable: true })
-  tenantCode: string;
-
-  @Column({ name: 'company_id', type: 'uuid', nullable: true })
-  companyId: string | null;
+  @Column({ name: 'company_id', type: 'uuid', nullable: false })
+  companyId: string;
 
   @Column({ name: 'name', type: 'varchar', length: 128, nullable: false })
   name: string;

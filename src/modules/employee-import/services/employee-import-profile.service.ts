@@ -1,13 +1,14 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { BusinessException, RequestContextService } from '@new-hros/libs-core';
 import { CompanyStatus } from '@new-hros/libs-sql';
+import { DeepPartial } from 'typeorm';
 
 import type { ImportJobConfig } from '../../../common/interfaces';
 import { CompanyProjectionRepository } from '../../provisioning/repositories/company-projection.repository';
 import type { CreateImportProfileDto, UpdateImportProfileDto } from '../dto';
 import { ImportProfileResponseDto } from '../dto/import-profile-response.dto';
 import { EmployeeImportProfileRepository } from '../repositories/employee-import-profile.repository';
-import { ConfigurationValidator, DeepPartial } from '../validators/configuration.validator';
+import { ConfigurationValidator } from '../validators/configuration.validator';
 
 @Injectable()
 export class EmployeeImportProfileService {
@@ -20,17 +21,12 @@ export class EmployeeImportProfileService {
   async create(dto: CreateImportProfileDto): Promise<ImportProfileResponseDto> {
     const tenantCode = RequestContextService.getTenantCode();
     const actorId = RequestContextService.getUser().userId;
+    const companyId = RequestContextService.getUser().employee?.companyId || '';
 
-    if (dto.companyId) {
-      await this.validateCompany(dto.companyId, tenantCode);
-    }
+    await this.validateCompany(companyId);
 
     // Check name uniqueness within tenant & company scope
-    const existing = await this.profileRepository.findByNameAndTenant(
-      dto.name.trim(),
-      tenantCode,
-      dto.companyId ?? null,
-    );
+    const existing = await this.profileRepository.findByNameAndCompany(dto.name, companyId);
     if (existing) {
       throw new BusinessException(
         `Profile with name '${dto.name}' already exists in tenant '${tenantCode}'`,
@@ -44,7 +40,7 @@ export class EmployeeImportProfileService {
 
     const saved = await this.profileRepository.create({
       tenantCode,
-      companyId: dto.companyId ?? null,
+      companyId,
       name: dto.name.trim(),
       description: dto.description?.trim() ?? null,
       config: validatedConfig,
@@ -55,65 +51,19 @@ export class EmployeeImportProfileService {
     return new ImportProfileResponseDto(saved);
   }
 
-  async list(isActive?: boolean, companyId?: string): Promise<ImportProfileResponseDto[]> {
-    const tenantCode = RequestContextService.getTenantCode();
-    const profiles = await this.profileRepository.findAccessibleProfiles(
-      tenantCode,
-      isActive,
-      companyId,
-    );
+  async list(isActive?: boolean): Promise<ImportProfileResponseDto[]> {
+    const companyId = RequestContextService.getUser().employee?.companyId || '';
+    const profiles = await this.profileRepository.findAccessibleProfiles(companyId, isActive);
     return profiles.map((p) => new ImportProfileResponseDto(p));
   }
 
   async getById(id: string): Promise<ImportProfileResponseDto> {
-    const tenantCode = RequestContextService.getTenantCode();
-    const profile = await this.profileRepository.findByIdAccessible(id, tenantCode);
-
-    if (!profile) {
-      throw new BusinessException(
-        `Profile not found with ID: ${id}`,
-        'PROFILE_NOT_FOUND',
-        HttpStatus.NOT_FOUND,
-      );
-    }
-
+    const profile = await this.profileRepository.findById(id, { required: true });
     return new ImportProfileResponseDto(profile);
   }
 
   async update(id: string, dto: UpdateImportProfileDto): Promise<ImportProfileResponseDto> {
-    const tenantCode = RequestContextService.getTenantCode();
-    const profile = await this.profileRepository.findById(id, { withTenancy: false });
-
-    if (!profile) {
-      throw new BusinessException(
-        `Profile not found with ID: ${id}`,
-        'PROFILE_NOT_FOUND',
-        HttpStatus.NOT_FOUND,
-      );
-    }
-
-    // Protect system-level profiles from modification by tenant administrators
-    if (profile.tenantCode === null) {
-      throw new BusinessException(
-        'System-level profiles are immutable and cannot be modified',
-        'SYSTEM_PROFILE_IMMUTABLE',
-        HttpStatus.FORBIDDEN,
-      );
-    }
-
-    // Enforce tenant isolation
-    if (profile.tenantCode !== tenantCode) {
-      throw new BusinessException(
-        `Profile not found with ID: ${id}`,
-        'PROFILE_NOT_FOUND',
-        HttpStatus.NOT_FOUND,
-      );
-    }
-
-    // Validate company if updated
-    if (dto.companyId !== undefined && dto.companyId !== null) {
-      await this.validateCompany(dto.companyId, tenantCode);
-    }
+    const profile = await this.profileRepository.findById(id, { required: true });
 
     // Optimistic concurrency control check
     if (dto.expectedVersion !== undefined && dto.expectedVersion !== profile.version) {
@@ -126,17 +76,14 @@ export class EmployeeImportProfileService {
 
     // If name or companyId is changing, check uniqueness
     const targetName = dto.name ? dto.name.trim() : profile.name;
-    const targetCompanyId = dto.companyId !== undefined ? dto.companyId : profile.companyId;
-
-    if (dto.name || dto.companyId !== undefined) {
-      const duplicate = await this.profileRepository.findByNameAndTenant(
+    if (dto.name) {
+      const duplicate = await this.profileRepository.findByNameAndCompany(
         targetName,
-        tenantCode,
-        targetCompanyId,
+        profile.companyId,
       );
       if (duplicate && duplicate.id !== id) {
         throw new BusinessException(
-          `Profile with name '${targetName}' already exists in tenant '${tenantCode}'`,
+          `Profile with name '${targetName}' already exists in company '${profile.companyId}'`,
           'DUPLICATE_PROFILE_NAME',
           HttpStatus.CONFLICT,
         );
@@ -151,25 +98,11 @@ export class EmployeeImportProfileService {
     }
 
     const expectedVersion = dto.expectedVersion ?? profile.version;
-    const updateData: {
-      name?: string;
-      description?: string | null;
-      companyId?: string | null;
-      config?: ImportJobConfig;
-    } = {};
-
-    if (dto.name) {
-      updateData.name = dto.name.trim();
-    }
-    if (dto.description !== undefined) {
-      updateData.description = dto.description?.trim() ?? null;
-    }
-    if (dto.companyId !== undefined) {
-      updateData.companyId = dto.companyId;
-    }
-    if (dto.config) {
-      updateData.config = effectiveConfig;
-    }
+    const updateData = {
+      name: dto.name?.trim(),
+      description: dto.description?.trim() ?? null,
+      config: effectiveConfig,
+    };
 
     const updated = await this.profileRepository.updateWithVersion(id, expectedVersion, updateData);
     if (!updated) {
@@ -196,32 +129,7 @@ export class EmployeeImportProfileService {
     id: string,
     isActive: boolean,
   ): Promise<ImportProfileResponseDto> {
-    const tenantCode = RequestContextService.getTenantCode();
-    const profile = await this.profileRepository.findById(id, { withTenancy: false });
-
-    if (!profile) {
-      throw new BusinessException(
-        `Profile not found with ID: ${id}`,
-        'PROFILE_NOT_FOUND',
-        HttpStatus.NOT_FOUND,
-      );
-    }
-
-    if (profile.tenantCode === null) {
-      throw new BusinessException(
-        'System-level profiles cannot be activated or deactivated by tenants',
-        'SYSTEM_PROFILE_IMMUTABLE',
-        HttpStatus.FORBIDDEN,
-      );
-    }
-
-    if (profile.tenantCode !== tenantCode) {
-      throw new BusinessException(
-        `Profile not found with ID: ${id}`,
-        'PROFILE_NOT_FOUND',
-        HttpStatus.NOT_FOUND,
-      );
-    }
+    const profile = await this.profileRepository.findById(id, { required: true });
 
     const updated = await this.profileRepository.updateWithVersion(id, profile.version, {
       isActive,
@@ -238,18 +146,8 @@ export class EmployeeImportProfileService {
     return new ImportProfileResponseDto(refreshed!);
   }
 
-  private async validateCompany(companyId: string, tenantCode: string): Promise<void> {
-    const company = await this.companyProjectionRepository.findOne(
-      { id: companyId, tenantCode },
-      { withTenancy: false },
-    );
-    if (!company) {
-      throw new BusinessException(
-        `Company with ID '${companyId}' not found for tenant '${tenantCode}'`,
-        'COMPANY_NOT_FOUND',
-        HttpStatus.BAD_REQUEST,
-      );
-    }
+  private async validateCompany(companyId: string): Promise<void> {
+    const company = await this.companyProjectionRepository.findById(companyId, { required: true });
     if (company.status !== CompanyStatus.ACTIVE) {
       throw new BusinessException(
         `Company with ID '${companyId}' is not active`,

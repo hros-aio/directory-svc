@@ -8,10 +8,11 @@ import {
   IsOptional,
   Max,
   Min,
-  validateSync,
   ValidateNested,
+  validateSync,
   ValidationError,
 } from 'class-validator';
+import { DeepPartial } from 'typeorm';
 
 import { ImportRowErrorMode } from '../../../common/enums';
 import type {
@@ -187,10 +188,6 @@ export class PartialImportJobConfigDto {
   @Type(() => PartialExecutionPolicyDto)
   executionPolicy?: PartialExecutionPolicyDto;
 }
-
-export type DeepPartial<T> = {
-  [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P];
-};
 
 @Injectable()
 export class ConfigurationValidator {

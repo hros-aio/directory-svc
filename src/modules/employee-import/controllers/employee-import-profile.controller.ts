@@ -49,12 +49,9 @@ export class EmployeeImportProfileController {
     description: 'List of accessible profiles',
     type: [ImportProfileResponseDto],
   })
-  async list(
-    @Query('isActive') isActive?: string,
-    @Query('companyId') companyId?: string,
-  ): Promise<ImportProfileResponseDto[]> {
+  async list(@Query('isActive') isActive?: string): Promise<ImportProfileResponseDto[]> {
     const activeFilter = isActive !== undefined ? isActive === 'true' : undefined;
-    return this.profileService.list(activeFilter, companyId);
+    return this.profileService.list(activeFilter);
   }
 
   @Get(':id')

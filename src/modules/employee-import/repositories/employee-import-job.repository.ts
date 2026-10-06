@@ -8,8 +8,4 @@ export class EmployeeImportJobRepository extends BaseRepository<EmployeeImportJo
   constructor(transactionService: TransactionService) {
     super(EmployeeImportJobEntity, transactionService);
   }
-
-  async findByIdAndTenant(id: string, tenantCode: string): Promise<EmployeeImportJobEntity | null> {
-    return this.findOne({ id, tenantCode });
-  }
 }

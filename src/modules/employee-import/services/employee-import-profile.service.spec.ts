@@ -44,17 +44,12 @@ describe('EmployeeImportProfileService', () => {
   };
 
   const createProfileEntity = (
-    overrides?: Omit<Partial<EmployeeImportProfileEntity>, 'tenantCode'> & {
-      tenantCode?: string | null;
-    },
+    overrides?: Partial<EmployeeImportProfileEntity>,
   ): EmployeeImportProfileEntity => {
     const entity = new EmployeeImportProfileEntity();
     entity.id = overrides?.id ?? 'uuid-123';
-    entity.tenantCode =
-      overrides?.tenantCode !== undefined
-        ? (overrides.tenantCode as unknown as string)
-        : tenantCode;
-    entity.companyId = overrides?.companyId ?? null;
+    entity.tenantCode = overrides?.tenantCode ?? tenantCode;
+    entity.companyId = overrides?.companyId ?? companyId;
     entity.name = overrides?.name ?? 'Standard Import';
     entity.description = overrides?.description ?? 'Sample description';
     entity.config = overrides?.config ?? sampleConfig;
@@ -75,19 +70,21 @@ describe('EmployeeImportProfileService', () => {
       roles: ['ADMIN'],
       scopes: [],
       permissions: ['import_profile.create', 'import_profile.update'],
+      employee: {
+        companyId,
+      },
     } as unknown as AuthContext);
 
     const mockRepo = {
       create: jest.fn(),
-      findByNameAndTenant: jest.fn(),
+      findByNameAndCompany: jest.fn(),
       findAccessibleProfiles: jest.fn(),
-      findByIdAccessible: jest.fn(),
       findById: jest.fn(),
       updateWithVersion: jest.fn(),
     };
 
     const mockCompanyRepo = {
-      findOne: jest.fn(),
+      findById: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -121,22 +118,21 @@ describe('EmployeeImportProfileService', () => {
       config: sampleConfig as unknown as CreateImportProfileDto['config'],
     };
 
-    it('should create a tenant-wide profile successfully when companyId is omitted', async () => {
-      repository.findByNameAndTenant.mockResolvedValue(null);
+    it('should create a profile successfully', async () => {
+      const activeCompany = { id: companyId, tenantCode, status: CompanyStatus.ACTIVE } as Company;
+      companyRepo.findById.mockResolvedValue(activeCompany);
+      repository.findByNameAndCompany.mockResolvedValue(null);
       const savedEntity = createProfileEntity();
       repository.create.mockResolvedValue(savedEntity);
 
       const result = await service.create(createDto);
 
-      expect(repository.findByNameAndTenant).toHaveBeenCalledWith(
-        'Standard Import',
-        tenantCode,
-        null,
-      );
+      expect(companyRepo.findById).toHaveBeenCalledWith(companyId, { required: true });
+      expect(repository.findByNameAndCompany).toHaveBeenCalledWith('Standard Import', companyId);
       expect(repository.create).toHaveBeenCalledWith(
         expect.objectContaining({
           tenantCode,
-          companyId: null,
+          companyId,
           name: 'Standard Import',
           createdBy: userId,
           isActive: true,
@@ -144,65 +140,19 @@ describe('EmployeeImportProfileService', () => {
       );
       expect(result.id).toBe(savedEntity.id);
       expect(result.name).toBe('Standard Import');
-      expect(result.companyId).toBeNull();
-      expect(result.isSystem).toBe(false);
-    });
-
-    it('should create a company-scoped profile when valid active companyId is provided', async () => {
-      const activeCompany = { id: companyId, tenantCode, status: CompanyStatus.ACTIVE } as Company;
-      companyRepo.findOne.mockResolvedValue(activeCompany);
-      repository.findByNameAndTenant.mockResolvedValue(null);
-
-      const savedEntity = createProfileEntity({ companyId });
-      repository.create.mockResolvedValue(savedEntity);
-
-      const result = await service.create({
-        ...createDto,
-        companyId,
-      });
-
-      expect(companyRepo.findOne).toHaveBeenCalledWith(
-        { id: companyId, tenantCode },
-        { withTenancy: false },
-      );
-      expect(repository.findByNameAndTenant).toHaveBeenCalledWith(
-        'Standard Import',
-        tenantCode,
-        companyId,
-      );
-      expect(repository.create).toHaveBeenCalledWith(
-        expect.objectContaining({
-          tenantCode,
-          companyId,
-          name: 'Standard Import',
-        }),
-      );
       expect(result.companyId).toBe(companyId);
     });
 
-    it('should throw BadRequestException when companyId is not found', async () => {
-      companyRepo.findOne.mockResolvedValue(null);
-
-      try {
-        await service.create({ ...createDto, companyId });
-        fail('Should have thrown BusinessException');
-      } catch (err) {
-        expect(err).toBeInstanceOf(BusinessException);
-        expect((err as BusinessException).code).toBe('COMPANY_NOT_FOUND');
-      }
-      expect(repository.create).not.toHaveBeenCalled();
-    });
-
-    it('should throw BadRequestException when company is inactive', async () => {
+    it('should throw when company is inactive', async () => {
       const inactiveCompany = {
         id: companyId,
         tenantCode,
         status: CompanyStatus.PENDING,
       } as Company;
-      companyRepo.findOne.mockResolvedValue(inactiveCompany);
+      companyRepo.findById.mockResolvedValue(inactiveCompany);
 
       try {
-        await service.create({ ...createDto, companyId });
+        await service.create(createDto);
         fail('Should have thrown BusinessException');
       } catch (err) {
         expect(err).toBeInstanceOf(BusinessException);
@@ -211,8 +161,10 @@ describe('EmployeeImportProfileService', () => {
       expect(repository.create).not.toHaveBeenCalled();
     });
 
-    it('should throw ConflictException when profile name is duplicate in tenant/company scope', async () => {
-      repository.findByNameAndTenant.mockResolvedValue(createProfileEntity());
+    it('should throw ConflictException when profile name is duplicate in company scope', async () => {
+      const activeCompany = { id: companyId, tenantCode, status: CompanyStatus.ACTIVE } as Company;
+      companyRepo.findById.mockResolvedValue(activeCompany);
+      repository.findByNameAndCompany.mockResolvedValue(createProfileEntity());
 
       await expect(service.create(createDto)).rejects.toThrow(BusinessException);
       expect(repository.create).not.toHaveBeenCalled();
@@ -220,35 +172,34 @@ describe('EmployeeImportProfileService', () => {
   });
 
   describe('list', () => {
-    it('should return accessible profiles for tenant and company', async () => {
-      const tenantProfile = createProfileEntity({ id: 'p1', companyId });
-      const systemProfile = createProfileEntity({ id: 'p2', tenantCode: null });
-      repository.findAccessibleProfiles.mockResolvedValue([tenantProfile, systemProfile]);
+    it('should return accessible profiles for company', async () => {
+      const profile1 = createProfileEntity({ id: 'p1', companyId });
+      const profile2 = createProfileEntity({ id: 'p2', companyId });
+      repository.findAccessibleProfiles.mockResolvedValue([profile1, profile2]);
 
-      const result = await service.list(true, companyId);
+      const result = await service.list(true);
 
-      expect(repository.findAccessibleProfiles).toHaveBeenCalledWith(tenantCode, true, companyId);
+      expect(repository.findAccessibleProfiles).toHaveBeenCalledWith(companyId, true);
       expect(result).toHaveLength(2);
       expect(result[0].companyId).toBe(companyId);
-      expect(result[1].isSystem).toBe(true);
     });
   });
 
   describe('getById', () => {
-    it('should return profile when found and accessible', async () => {
+    it('should return profile when found', async () => {
       const profile = createProfileEntity();
-      repository.findByIdAccessible.mockResolvedValue(profile);
+      repository.findById.mockResolvedValue(profile);
 
       const result = await service.getById('uuid-123');
 
-      expect(repository.findByIdAccessible).toHaveBeenCalledWith('uuid-123', tenantCode);
+      expect(repository.findById).toHaveBeenCalledWith('uuid-123', { required: true });
       expect(result.id).toBe('uuid-123');
     });
 
-    it('should throw NotFoundException when profile is not accessible', async () => {
-      repository.findByIdAccessible.mockResolvedValue(null);
+    it('should throw when profile is not found', async () => {
+      repository.findById.mockRejectedValue(new Error('Record not found with ID: non-existent'));
 
-      await expect(service.getById('non-existent')).rejects.toThrow(BusinessException);
+      await expect(service.getById('non-existent')).rejects.toThrow('Record not found');
     });
   });
 
@@ -256,7 +207,7 @@ describe('EmployeeImportProfileService', () => {
     it('should update profile and increment version', async () => {
       const existing = createProfileEntity({ version: 1 });
       repository.findById.mockResolvedValueOnce(existing);
-      repository.findByNameAndTenant.mockResolvedValue(null);
+      repository.findByNameAndCompany.mockResolvedValue(null);
       repository.updateWithVersion.mockResolvedValue(true);
 
       const updatedEntity = createProfileEntity({
@@ -281,36 +232,6 @@ describe('EmployeeImportProfileService', () => {
       expect(result.name).toBe('Updated Name');
     });
 
-    it('should update companyId after validating company projection', async () => {
-      const existing = createProfileEntity({ version: 1, companyId: null });
-      repository.findById.mockResolvedValueOnce(existing);
-
-      const activeCompany = { id: companyId, tenantCode, status: CompanyStatus.ACTIVE } as Company;
-      companyRepo.findOne.mockResolvedValue(activeCompany);
-      repository.findByNameAndTenant.mockResolvedValue(null);
-      repository.updateWithVersion.mockResolvedValue(true);
-
-      const updatedEntity = createProfileEntity({ version: 2, companyId });
-      repository.findById.mockResolvedValueOnce(updatedEntity);
-
-      const updateDto: UpdateImportProfileDto = {
-        companyId,
-      };
-
-      const result = await service.update('uuid-123', updateDto);
-
-      expect(companyRepo.findOne).toHaveBeenCalledWith(
-        { id: companyId, tenantCode },
-        { withTenancy: false },
-      );
-      expect(repository.updateWithVersion).toHaveBeenCalledWith(
-        'uuid-123',
-        1,
-        expect.objectContaining({ companyId }),
-      );
-      expect(result.companyId).toBe(companyId);
-    });
-
     it('should throw ConflictException on expected version mismatch', async () => {
       const existing = createProfileEntity({ version: 2 });
       repository.findById.mockResolvedValue(existing);
@@ -324,33 +245,11 @@ describe('EmployeeImportProfileService', () => {
       expect(repository.updateWithVersion).not.toHaveBeenCalled();
     });
 
-    it('should throw ForbiddenException when updating system profile', async () => {
-      const systemProfile = createProfileEntity({ tenantCode: null });
-      repository.findById.mockResolvedValue(systemProfile);
-
-      const updateDto: UpdateImportProfileDto = {
-        name: 'Updated Name',
-      };
-
-      await expect(service.update('uuid-system', updateDto)).rejects.toThrow(BusinessException);
-      expect(repository.updateWithVersion).not.toHaveBeenCalled();
-    });
-
-    it('should throw NotFoundException when updating another tenant profile', async () => {
-      const otherTenantProfile = createProfileEntity({ tenantCode: 'OTHER_TENANT' });
-      repository.findById.mockResolvedValue(otherTenantProfile);
-
-      await expect(service.update('uuid-other', { name: 'New' })).rejects.toThrow(
-        BusinessException,
-      );
-      expect(repository.updateWithVersion).not.toHaveBeenCalled();
-    });
-
     it('should throw ConflictException when update name conflicts with existing profile', async () => {
       const existing = createProfileEntity({ id: 'uuid-123', name: 'Original Name' });
       repository.findById.mockResolvedValue(existing);
       const duplicate = createProfileEntity({ id: 'uuid-other', name: 'Taken Name' });
-      repository.findByNameAndTenant.mockResolvedValue(duplicate);
+      repository.findByNameAndCompany.mockResolvedValue(duplicate);
 
       await expect(service.update('uuid-123', { name: 'Taken Name' })).rejects.toThrow(
         BusinessException,
@@ -424,27 +323,6 @@ describe('EmployeeImportProfileService', () => {
       expect(result.isActive).toBe(false);
     });
 
-    it('should forbid deactivating system profile', async () => {
-      const systemProfile = createProfileEntity({ tenantCode: null });
-      repository.findById.mockResolvedValue(systemProfile);
-
-      await expect(service.deactivate('uuid-system')).rejects.toThrow(BusinessException);
-    });
-
-    it('should forbid activating system profile', async () => {
-      const systemProfile = createProfileEntity({ tenantCode: null, isActive: false });
-      repository.findById.mockResolvedValue(systemProfile);
-
-      await expect(service.activate('uuid-system')).rejects.toThrow(BusinessException);
-    });
-
-    it('should throw NotFoundException when activating another tenant profile', async () => {
-      const otherTenantProfile = createProfileEntity({ tenantCode: 'OTHER_TENANT' });
-      repository.findById.mockResolvedValue(otherTenantProfile);
-
-      await expect(service.activate('uuid-other')).rejects.toThrow(BusinessException);
-    });
-
     it('should throw ConflictException when status update conflicts', async () => {
       const existing = createProfileEntity({ isActive: true, version: 1 });
       repository.findById.mockResolvedValueOnce(existing);
@@ -453,10 +331,10 @@ describe('EmployeeImportProfileService', () => {
       await expect(service.deactivate('uuid-123')).rejects.toThrow(BusinessException);
     });
 
-    it('should throw NotFoundException when activating non-existent profile', async () => {
-      repository.findById.mockResolvedValue(null);
+    it('should throw when activating non-existent profile', async () => {
+      repository.findById.mockRejectedValue(new Error('Record not found with ID: uuid-missing'));
 
-      await expect(service.activate('uuid-missing')).rejects.toThrow(BusinessException);
+      await expect(service.activate('uuid-missing')).rejects.toThrow('Record not found');
     });
   });
 });

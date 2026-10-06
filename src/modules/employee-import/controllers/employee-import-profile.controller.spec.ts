@@ -40,7 +40,6 @@ describe('EmployeeImportProfileController', () => {
   it('should delegate create request to EmployeeImportProfileService', async () => {
     const dto: CreateImportProfileDto = {
       name: 'Test Profile',
-      companyId: 'e5b8d2a6-9f3c-4217-b715-2f9876543210',
       config: {
         errorPolicy: { mode: ImportRowErrorMode.CONTINUE_ON_ROW_ERROR },
         retryPolicy: {
@@ -66,16 +65,16 @@ describe('EmployeeImportProfileController', () => {
     expect(service.create).toHaveBeenCalledWith(dto);
   });
 
-  it('should delegate list request with active filter and companyId', async () => {
+  it('should delegate list request with active filter', async () => {
     service.list.mockResolvedValue([]);
-    await controller.list('true', 'comp-uuid');
-    expect(service.list).toHaveBeenCalledWith(true, 'comp-uuid');
+    await controller.list('true');
+    expect(service.list).toHaveBeenCalledWith(true);
 
-    await controller.list('false', undefined);
-    expect(service.list).toHaveBeenCalledWith(false, undefined);
+    await controller.list('false');
+    expect(service.list).toHaveBeenCalledWith(false);
 
-    await controller.list(undefined, undefined);
-    expect(service.list).toHaveBeenCalledWith(undefined, undefined);
+    await controller.list(undefined);
+    expect(service.list).toHaveBeenCalledWith(undefined);
   });
 
   it('should delegate getById request', async () => {
@@ -88,7 +87,7 @@ describe('EmployeeImportProfileController', () => {
   });
 
   it('should delegate update request', async () => {
-    const dto: UpdateImportProfileDto = { name: 'Updated', companyId: 'comp-uuid' };
+    const dto: UpdateImportProfileDto = { name: 'Updated' };
     const expected = { id: 'prof-1', name: 'Updated' } as unknown as ImportProfileResponseDto;
     service.update.mockResolvedValue(expected);
 

@@ -11,19 +11,11 @@ export class CreateImportJobDto {
   })
   @IsOptional()
   @IsUUID('4')
-  readonly profileId?: string;
-
-  @ApiPropertyOptional({
-    description: 'Optional target company UUID for import',
-    example: 'e5b8d2a6-9f3c-4217-b715-2f9876543210',
-  })
-  @IsOptional()
-  @IsUUID('4')
-  readonly companyId?: string;
+  profileId?: string;
 
   @ApiPropertyOptional({ description: 'Optional job-level policy overrides' })
   @IsOptional()
   @ValidateNested()
   @Type(() => PartialImportJobConfigDto)
-  readonly overrides?: PartialImportJobConfigDto;
+  overrides?: PartialImportJobConfigDto;
 }
