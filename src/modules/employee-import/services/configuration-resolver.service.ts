@@ -1,9 +1,10 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { BusinessException } from '@new-hros/libs-core';
+import { DeepPartial } from 'typeorm';
 
 import { ImportRowErrorMode } from '../../../common/enums';
 import type { ImportJobConfig } from '../../../common/interfaces';
-import { ConfigurationValidator, DeepPartial } from '../validators/configuration.validator';
+import { ConfigurationValidator } from '../validators/configuration.validator';
 
 export const SYSTEM_BASELINE_CONFIG: ImportJobConfig = Object.freeze({
   errorPolicy: {

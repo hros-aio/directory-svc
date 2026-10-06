@@ -35,12 +35,20 @@ describe('EmployeeImportJobRepository', () => {
     );
   });
 
-  describe('findByIdAndTenant', () => {
-    it('should query job by id and tenantCode', async () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('should be defined', () => {
+    expect(repository).toBeDefined();
+  });
+
+  describe('findById', () => {
+    it('should query job by id with tenant scope', async () => {
       const job = new EmployeeImportJobEntity();
       mockTypeormRepo.findOne.mockResolvedValue(job);
 
-      const result = await repository.findByIdAndTenant('job-1', 'TENANT_A');
+      const result = await repository.findById('job-1');
 
       expect(mockTypeormRepo.findOne).toHaveBeenCalledWith(
         expect.objectContaining({
