@@ -79,4 +79,61 @@ describe('OutboxService', () => {
       status: OutboxStatus.PENDING,
     });
   });
+
+  it('should create an outbox event from employee updated', async () => {
+    const employee: EmployeeEntity = {
+      id: 'emp-1',
+      tenantCode: 'tenant-1',
+      employeeCode: 'EMP-001',
+      status: EmployeeStatus.ACTIVE,
+      employmentType: EmploymentType.PART_TIME,
+      employmentStatus: EmploymentStatus.ACTIVE,
+      joinedAt: new Date('2026-01-01T00:00:00.000Z'),
+      updatedAt: new Date('2026-10-08T12:00:00.000Z'),
+    } as unknown as EmployeeEntity;
+
+    const assignment: EmploymentAssignmentEntity = {
+      companyId: 'comp-1',
+      locationId: 'loc-2',
+      departmentId: 'dept-2',
+      gradeId: 'grade-2',
+      jobTitleId: 'job-2',
+      managerEmployeeId: 'mgr-2',
+    } as unknown as EmploymentAssignmentEntity;
+
+    const mockEvent = {
+      id: 'outbox-2',
+      status: OutboxStatus.PENDING,
+    } as unknown as OutboxEventEntity;
+
+    outboxRepo.create.mockResolvedValue(mockEvent);
+
+    const result = await service.fromEmployeeUpdated(employee, assignment);
+
+    expect(result).toEqual(mockEvent);
+    expect(outboxRepo.create).toHaveBeenCalledWith({
+      tenantCode: 'tenant-1',
+      aggregateType: 'EMPLOYEE',
+      aggregateId: 'emp-1',
+      eventType: 'directory.employee.updated',
+      eventVersion: 1,
+      payload: {
+        employeeId: 'emp-1',
+        tenantCode: 'tenant-1',
+        employeeCode: 'EMP-001',
+        status: EmployeeStatus.ACTIVE,
+        employmentType: EmploymentType.PART_TIME,
+        employmentStatus: EmploymentStatus.ACTIVE,
+        companyId: 'comp-1',
+        locationId: 'loc-2',
+        departmentId: 'dept-2',
+        gradeId: 'grade-2',
+        jobTitleId: 'job-2',
+        managerId: 'mgr-2',
+        joinedAt: '2026-01-01T00:00:00.000Z',
+        updatedAt: '2026-10-08T12:00:00.000Z',
+      },
+      status: OutboxStatus.PENDING,
+    });
+  });
 });
