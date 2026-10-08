@@ -41,4 +41,37 @@ export class OutboxService {
       status: OutboxStatus.PENDING,
     });
   }
+
+  async fromEmployeeUpdated(
+    employee: EmployeeEntity,
+    assignment: EmploymentAssignmentEntity,
+  ): Promise<OutboxEventEntity> {
+    const tenantCode = employee.tenantCode;
+    const eventPayload = {
+      employeeId: employee.id,
+      tenantCode,
+      employeeCode: employee.employeeCode,
+      status: employee.status,
+      employmentType: employee.employmentType,
+      employmentStatus: employee.employmentStatus,
+      companyId: assignment.companyId,
+      locationId: assignment.locationId,
+      departmentId: assignment.departmentId,
+      gradeId: assignment.gradeId,
+      jobTitleId: assignment.jobTitleId,
+      managerId: assignment.managerEmployeeId,
+      joinedAt: employee.joinedAt ? employee.joinedAt.toISOString() : null,
+      updatedAt: employee.updatedAt ? employee.updatedAt.toISOString() : new Date().toISOString(),
+    };
+
+    return this.outboxRepository.create({
+      tenantCode,
+      aggregateType: 'EMPLOYEE',
+      aggregateId: employee.id,
+      eventType: 'directory.employee.updated',
+      eventVersion: 1,
+      payload: eventPayload,
+      status: OutboxStatus.PENDING,
+    });
+  }
 }

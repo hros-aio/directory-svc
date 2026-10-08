@@ -12,6 +12,7 @@ import {
 
 import { EmployeeReferenceValidator } from './employee-reference.validator';
 import { EmploymentType } from '../../../common/enums';
+import { EmploymentAssignmentEntity } from '../../employment/entities/employment-assignment.entity';
 import {
   CompanyProjectionRepository,
   DepartmentProjectionRepository,
@@ -213,6 +214,88 @@ describe('EmployeeReferenceValidator', () => {
     await expect(validator.validateAndResolve(dtoNoDept)).rejects.toMatchObject({
       code: 'INVALID_ORGANIZATION_ASSIGNMENT',
       status: 400,
+    });
+  });
+
+  describe('validateAndResolveForUpdate', () => {
+    const currentAssignment = {
+      companyId: 'company-uuid-1',
+      departmentId: 'dept-uuid-1',
+      locationId: 'loc-uuid-1',
+      gradeId: 'grade-uuid-1',
+      jobTitleId: 'job-uuid-1',
+    } as unknown as EmploymentAssignmentEntity;
+
+    it('should validate and merge partial updates with current assignment', async () => {
+      companyRepo.findById.mockResolvedValue({
+        id: 'company-uuid-1',
+        companyCode: 'CORP',
+        displayName: 'Corp Global',
+        status: CompanyStatus.ACTIVE,
+      } as unknown as Company);
+
+      deptRepo.findById.mockResolvedValue({
+        id: 'dept-uuid-2',
+        code: 'HR',
+        name: 'Human Resources',
+        companyId: 'company-uuid-1',
+        status: MasterDataStatus.ACTIVE,
+      } as unknown as Department);
+
+      locRepo.findById.mockResolvedValue({
+        id: 'loc-uuid-1',
+        code: 'HQ',
+        name: 'Singapore HQ',
+        companyId: 'company-uuid-1',
+        status: MasterDataStatus.ACTIVE,
+      } as unknown as Location);
+
+      const result = await validator.validateAndResolveForUpdate(
+        { departmentId: 'dept-uuid-2' },
+        currentAssignment,
+      );
+
+      expect(result.company.id).toBe('company-uuid-1');
+      expect(result.department?.id).toBe('dept-uuid-2');
+      expect(result.location?.id).toBe('loc-uuid-1');
+    });
+
+    it('should throw INVALID_ORGANIZATION_ASSIGNMENT if updated department belongs to different company', async () => {
+      companyRepo.findById.mockResolvedValue({
+        id: 'company-uuid-1',
+        companyCode: 'CORP',
+        status: CompanyStatus.ACTIVE,
+      } as unknown as Company);
+
+      deptRepo.findById.mockResolvedValue({
+        id: 'dept-uuid-diff',
+        companyId: 'other-company-uuid',
+        status: MasterDataStatus.ACTIVE,
+      } as unknown as Department);
+
+      await expect(
+        validator.validateAndResolveForUpdate(
+          { departmentId: 'dept-uuid-diff' },
+          currentAssignment,
+        ),
+      ).rejects.toMatchObject({
+        code: 'INVALID_ORGANIZATION_ASSIGNMENT',
+        status: 400,
+      });
+    });
+
+    it('should throw COMPANY_NOT_FOUND if company is inactive or not found', async () => {
+      companyRepo.findById.mockResolvedValue(null);
+
+      await expect(
+        validator.validateAndResolveForUpdate(
+          { companyId: 'non-existent-company' },
+          currentAssignment,
+        ),
+      ).rejects.toMatchObject({
+        code: 'COMPANY_NOT_FOUND',
+        status: 404,
+      });
     });
   });
 });
