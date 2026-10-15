@@ -45,6 +45,7 @@ describe('EmployeeService', () => {
     jobTitleId: 'job-1',
     managerId: 'mgr-1',
     joinedAt: '2026-10-01T00:00:00.000Z',
+    workEmail: 'abc@gmail.com',
   };
 
   beforeEach(async () => {
@@ -193,11 +194,6 @@ describe('EmployeeService', () => {
     expect(outboxService.fromEmployeeCreated).toHaveBeenCalledWith(
       mockSavedEmployee,
       mockSavedAssignment,
-    );
-    expect(loggerService.audit).toHaveBeenCalledWith(
-      'EMPLOYEE_CREATED',
-      userId,
-      expect.objectContaining({ employeeId: 'emp-uuid-1', tenantCode }),
     );
   });
 

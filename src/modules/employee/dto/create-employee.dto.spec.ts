@@ -9,6 +9,7 @@ describe('CreateEmployeeDto', () => {
     employeeCode: 'EMP-00101',
     firstName: 'Jane',
     lastName: 'Doe',
+    workEmail: 'jane.doe@work.com',
     employmentType: EmploymentType.FULL_TIME,
     companyId: '9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d',
   };
