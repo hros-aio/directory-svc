@@ -40,6 +40,7 @@ describe('EmployeeReferenceValidator', () => {
     locationId: 'loc-uuid-1',
     gradeId: 'grade-uuid-1',
     jobTitleId: 'job-uuid-1',
+    workEmail: 'abc@gmail.com',
   };
 
   beforeEach(async () => {

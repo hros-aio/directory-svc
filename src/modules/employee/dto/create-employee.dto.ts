@@ -93,6 +93,11 @@ export class CreateEmployeeDto {
   @IsDateString()
   dateOfBirth?: string;
 
+  @ApiProperty({ example: 'jane.doe@work.com' })
+  @IsEmail()
+  @MaxLength(320)
+  workEmail: string;
+
   @ApiPropertyOptional({ example: 'FEMALE' })
   @IsOptional()
   @IsString()

@@ -36,6 +36,7 @@ describe('EmployeeController', () => {
       lastName: 'Doe',
       employmentType: EmploymentType.FULL_TIME,
       companyId: 'comp-1',
+      workEmail: 'abc@gmail.com',
     };
 
     const expectedResponse = {

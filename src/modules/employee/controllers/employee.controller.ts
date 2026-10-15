@@ -22,20 +22,6 @@ export class EmployeeController {
     description: 'Employee created successfully',
     type: EmployeeResponseDto,
   })
-  @ApiResponse({
-    status: HttpStatus.BAD_REQUEST,
-    description: 'Invalid input or organizational assignment',
-  })
-  @ApiResponse({ status: HttpStatus.UNAUTHORIZED, description: 'Unauthorized' })
-  @ApiResponse({ status: HttpStatus.FORBIDDEN, description: 'Forbidden' })
-  @ApiResponse({
-    status: HttpStatus.NOT_FOUND,
-    description: 'Referenced setting entity or manager not found',
-  })
-  @ApiResponse({
-    status: HttpStatus.CONFLICT,
-    description: 'Duplicate employee code or projection not ready',
-  })
   async create(@Body() dto: CreateEmployeeDto): Promise<EmployeeResponseDto> {
     return this.employeeService.create(dto);
   }
