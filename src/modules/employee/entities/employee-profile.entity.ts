@@ -27,6 +27,9 @@ export class EmployeeProfileEntity extends BaseEntity {
   @Column({ name: 'date_of_birth', type: 'date', nullable: true })
   dateOfBirth: Date | null;
 
+  @Column({ name: 'work_email', type: 'varchar', length: 320, nullable: false })
+  workEmail: string;
+
   @Column({ name: 'gender', type: 'varchar', length: 32, nullable: true })
   gender: string | null;
 

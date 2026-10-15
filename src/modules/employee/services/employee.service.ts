@@ -1,5 +1,5 @@
-import { Injectable, Logger, Optional } from '@nestjs/common';
-import { BusinessException, LoggerService, RequestContextService } from '@new-hros/libs-core';
+import { Injectable, Logger } from '@nestjs/common';
+import { BusinessException, RequestContextService } from '@new-hros/libs-core';
 import { TransactionService } from '@new-hros/libs-sql';
 
 import { EmployeeStatus, EmploymentStatus } from '../../../common/enums';
@@ -21,7 +21,7 @@ export interface RequestTenantContext {
 
 @Injectable()
 export class EmployeeService {
-  private readonly defaultLogger = new Logger(EmployeeService.name);
+  private readonly loggerService = new Logger(EmployeeService.name);
 
   constructor(
     private readonly employeeRepository: EmployeeRepository,
@@ -31,17 +31,18 @@ export class EmployeeService {
     private readonly referenceValidator: EmployeeReferenceValidator,
     private readonly managerValidator: ManagerValidator,
     private readonly transactionService: TransactionService,
-    @Optional() private readonly loggerService?: LoggerService,
   ) {}
 
   async create(dto: CreateEmployeeDto): Promise<EmployeeResponseDto> {
     const tenantCode = RequestContextService.getTenantCode();
-    const actorId = RequestContextService.getUser().userId;
     const normalizedCode = dto.employeeCode.trim();
 
     // 1. Check duplicate employee code within tenant
     const existingEmployee = await this.employeeRepository.findByCode(normalizedCode);
     if (existingEmployee) {
+      this.loggerService.warn(
+        `Duplicate employee code '${normalizedCode}' found in tenant '${tenantCode}'`,
+      );
       throw new BusinessException(
         `Employee with code '${normalizedCode}' already exists in tenant '${tenantCode}'`,
         'DUPLICATE_EMPLOYEE_CODE',
@@ -53,7 +54,7 @@ export class EmployeeService {
     const resolvedReferences = await this.referenceValidator.validateAndResolve(dto);
 
     // 3. Validate Manager (if supplied)
-    let resolvedManager: ResolvedManagerDto | undefined = undefined;
+    let resolvedManager: ResolvedManagerDto | undefined;
     if (dto.managerId) {
       const managerValidationResult = await this.managerValidator.validateManager(dto.managerId);
       resolvedManager = managerValidationResult.resolved;
@@ -80,6 +81,7 @@ export class EmployeeService {
           employeeId: savedEmployee.id,
           firstName: dto.firstName.trim(),
           lastName: dto.lastName.trim(),
+          workEmail: dto.workEmail.trim(),
           middleName: dto.middleName ? dto.middleName.trim() : null,
           preferredName: dto.preferredName ? dto.preferredName.trim() : null,
           dateOfBirth: dto.dateOfBirth ? new Date(dto.dateOfBirth) : null,
@@ -120,21 +122,6 @@ export class EmployeeService {
         };
       },
     );
-
-    // 5. Emit Audit Log
-    if (this.loggerService) {
-      this.loggerService.audit('EMPLOYEE_CREATED', actorId, {
-        tenantCode,
-        employeeId: employee.id,
-        employeeCode: employee.employeeCode,
-        traceId: RequestContextService.getTraceId(),
-        requestId: RequestContextService.getRequestId(),
-      });
-    } else {
-      this.defaultLogger.log(
-        `Audit: EMPLOYEE_CREATED by actor ${actorId} - employeeId: ${employee.id}, tenant: ${tenantCode}`,
-      );
-    }
 
     // 6. Build and return EmployeeResponseDto
     return EmployeeResponseDto.mapToResponseDto(
